@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduTermMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduTerm" id="EduTermResult">
+        <id property="termId" column="term_id" />
+        <result property="termCode" column="term_code" />
+        <result property="termName" column="term_name" />
+        <result property="schoolYear" column="school_year" />
+        <result property="semesterNo" column="semester_no" />
+        <result property="startDate" column="start_date" />
+        <result property="endDate" column="end_date" />
+        <result property="selectStartTime" column="select_start_time" />
+        <result property="selectEndTime" column="select_end_time" />
+        <result property="status" column="status" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduTermVo">
+        select
+            t.term_id,
+            t.term_code,
+            t.term_name,
+            t.school_year,
+            t.semester_no,
+            t.start_date,
+            t.end_date,
+            t.select_start_time,
+            t.select_end_time,
+            t.status,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_term t
+    </sql>
+
+    <select id="selectEduTermList" parameterType="com.ruoyi.system.domain.education.EduTerm" resultMap="EduTermResult">
+        <include refid="selectEduTermVo"/>
+        <where>
+            <if test="termCode != null and termCode != ''"> and t.term_code like concat('%', #{termCode}, '%')</if>
+            <if test="termName != null and termName != ''"> and t.term_name like concat('%', #{termName}, '%')</if>
+            <if test="status != null and status != ''"> and t.status = #{status}</if>
+        </where>
+        order by t.term_id desc
+    </select>
+
+    <select id="selectEduTermByTermId" parameterType="Long" resultMap="EduTermResult">
+        <include refid="selectEduTermVo"/>
+        where t.term_id = #{termId}
+    </select>
+
+    <insert id="insertEduTerm" parameterType="com.ruoyi.system.domain.education.EduTerm" useGeneratedKeys="true" keyProperty="termId">
+        insert into edu_term
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="termCode != null">term_code,</if>
+            <if test="termName != null">term_name,</if>
+            <if test="schoolYear != null">school_year,</if>
+            <if test="semesterNo != null">semester_no,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="selectStartTime != null">select_start_time,</if>
+            <if test="selectEndTime != null">select_end_time,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="termCode != null">#{termCode},</if>
+            <if test="termName != null">#{termName},</if>
+            <if test="schoolYear != null">#{schoolYear},</if>
+            <if test="semesterNo != null">#{semesterNo},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="selectStartTime != null">#{selectStartTime},</if>
+            <if test="selectEndTime != null">#{selectEndTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduTerm" parameterType="com.ruoyi.system.domain.education.EduTerm">
+        update edu_term
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="termCode != null">term_code = #{termCode},</if>
+            <if test="termName != null">term_name = #{termName},</if>
+            <if test="schoolYear != null">school_year = #{schoolYear},</if>
+            <if test="semesterNo != null">semester_no = #{semesterNo},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="selectStartTime != null">select_start_time = #{selectStartTime},</if>
+            <if test="selectEndTime != null">select_end_time = #{selectEndTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where term_id = #{termId}
+    </update>
+
+    <update id="deleteEduTermByTermId" parameterType="Long">
+        update edu_term set del_flag = '2' where term_id = #{termId}
+    </update>
+
+    <update id="deleteEduTermByTermIds" parameterType="long">
+        update edu_term set del_flag = '2' where term_id in
+        <foreach item="termId" collection="array" open="(" separator="," close=")">
+            #{termId}
+        </foreach>
+    </update>
+
+    <select id="checkTermCodeUnique" parameterType="com.ruoyi.system.domain.education.EduTerm" resultType="int">
+        select count(1) from edu_term
+        where term_code = #{termCode}
+          and del_flag = '0'
+          <if test="termId != null and termId != 0">
+              and term_id != #{termId}
+          </if>
+    </select>
+</mapper>

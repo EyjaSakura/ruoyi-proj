@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduStudentProfileMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduStudentProfile" id="EduStudentProfileResult">
+        <id property="studentId" column="student_id" />
+        <result property="userId" column="user_id" />
+        <result property="studentNo" column="student_no" />
+        <result property="studentName" column="student_name" />
+        <result property="deptId" column="dept_id" />
+        <result property="deptName" column="dept_name" />
+        <result property="majorName" column="major_name" />
+        <result property="className" column="class_name" />
+        <result property="gradeName" column="grade_name" />
+        <result property="admissionYear" column="admission_year" />
+        <result property="phone" column="phone" />
+        <result property="email" column="email" />
+        <result property="studyStatus" column="study_status" />
+        <result property="status" column="status" />
+        <result property="delFlag" column="del_flag" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduStudentProfileVo">
+        select
+            t.student_id,
+            t.user_id,
+            t.student_no,
+            t.student_name,
+            t.dept_id,
+            d.dept_name,
+            t.major_name,
+            t.class_name,
+            t.grade_name,
+            t.admission_year,
+            t.phone,
+            t.email,
+            t.study_status,
+            t.status,
+            t.del_flag,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_student_profile t
+        left join sys_dept d on d.dept_id = t.dept_id
+    </sql>
+
+    <select id="selectEduStudentProfileList" parameterType="com.ruoyi.system.domain.education.EduStudentProfile" resultMap="EduStudentProfileResult">
+        <include refid="selectEduStudentProfileVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            and (t.del_flag is null or t.del_flag = '0')
+            <if test="userId != null"> and t.user_id = #{userId}</if>
+            <if test="studentNo != null and studentNo != ''"> and t.student_no like concat('%', #{studentNo}, '%')</if>
+            <if test="studentName != null and studentName != ''"> and t.student_name like concat('%', #{studentName}, '%')</if>
+            <if test="deptId != null"> and t.dept_id = #{deptId}</if>
+            <if test="studyStatus != null and studyStatus != ''"> and t.study_status = #{studyStatus}</if>
+            <if test="status != null and status != ''"> and t.status = #{status}</if>
+            <if test="params.scopeTeacherUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_enrollment e
+                    join edu_course_teacher ct
+                      on ct.course_id = e.course_id
+                    where e.student_user_id = t.user_id
+                      and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                )
+            </if>
+        </where>
+        order by t.student_id desc
+    </select>
+
+    <select id="selectEduStudentProfileByStudentId" parameterType="Long" resultMap="EduStudentProfileResult">
+        <include refid="selectEduStudentProfileVo"/>
+        where t.student_id = #{studentId}
+          and (t.del_flag is null or t.del_flag = '0')
+    </select>
+
+    <insert id="insertEduStudentProfile" parameterType="com.ruoyi.system.domain.education.EduStudentProfile" useGeneratedKeys="true" keyProperty="studentId">
+        insert into edu_student_profile
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="studentNo != null">student_no,</if>
+            <if test="studentName != null">student_name,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="majorName != null">major_name,</if>
+            <if test="className != null">class_name,</if>
+            <if test="gradeName != null">grade_name,</if>
+            <if test="admissionYear != null">admission_year,</if>
+            <if test="phone != null">phone,</if>
+            <if test="email != null">email,</if>
+            <if test="studyStatus != null">study_status,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="studentNo != null">#{studentNo},</if>
+            <if test="studentName != null">#{studentName},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="majorName != null">#{majorName},</if>
+            <if test="className != null">#{className},</if>
+            <if test="gradeName != null">#{gradeName},</if>
+            <if test="admissionYear != null">#{admissionYear},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="email != null">#{email},</if>
+            <if test="studyStatus != null">#{studyStatus},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduStudentProfile" parameterType="com.ruoyi.system.domain.education.EduStudentProfile">
+        update edu_student_profile
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="studentNo != null">student_no = #{studentNo},</if>
+            <if test="studentName != null">student_name = #{studentName},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="majorName != null">major_name = #{majorName},</if>
+            <if test="className != null">class_name = #{className},</if>
+            <if test="gradeName != null">grade_name = #{gradeName},</if>
+            <if test="admissionYear != null">admission_year = #{admissionYear},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="studyStatus != null">study_status = #{studyStatus},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where student_id = #{studentId}
+    </update>
+
+    <delete id="deleteEduStudentProfileByStudentId" parameterType="Long">
+        delete from edu_student_profile where student_id = #{studentId}
+    </delete>
+
+    <delete id="deleteEduStudentProfileByStudentIds" parameterType="long">
+        delete from edu_student_profile where student_id in
+        <foreach item="studentId" collection="array" open="(" separator="," close=")">
+            #{studentId}
+        </foreach>
+    </delete>
+</mapper>

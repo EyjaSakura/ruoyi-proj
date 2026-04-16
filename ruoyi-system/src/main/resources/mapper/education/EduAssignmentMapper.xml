@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduAssignmentMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduAssignment" id="EduAssignmentResult">
+        <id property="assignmentId" column="assignment_id" />
+        <result property="courseId" column="course_id" />
+        <result property="title" column="title" />
+        <result property="assignmentType" column="assignment_type" />
+        <result property="content" column="content" />
+        <result property="totalScore" column="total_score" />
+        <result property="submitLimit" column="submit_limit" />
+        <result property="allowResubmit" column="allow_resubmit" />
+        <result property="deadlineTime" column="deadline_time" />
+        <result property="publishStatus" column="publish_status" />
+        <result property="publishUserId" column="publish_user_id" />
+        <result property="publishTime" column="publish_time" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduAssignmentVo">
+        select
+            t.assignment_id,
+            t.course_id,
+            t.title,
+            t.assignment_type,
+            t.content,
+            t.total_score,
+            t.submit_limit,
+            t.allow_resubmit,
+            t.deadline_time,
+            t.publish_status,
+            t.publish_user_id,
+            t.publish_time,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_assignment t
+    </sql>
+
+    <select id="selectEduAssignmentList" parameterType="com.ruoyi.system.domain.education.EduAssignment" resultMap="EduAssignmentResult">
+        <include refid="selectEduAssignmentVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            <if test="courseId != null"> and t.course_id = #{courseId}</if>
+            <if test="title != null and title != ''"> and t.title like concat('%', #{title}, '%')</if>
+            <if test="publishStatus != null and publishStatus != ''"> and t.publish_status = #{publishStatus}</if>
+            <if test="params.scopeDeptId != null">
+                and exists (
+                    select 1
+                    from edu_course c
+                    where c.course_id = t.course_id
+                      and c.dept_id = #{params.scopeDeptId}
+                      and (c.del_flag is null or c.del_flag = '0')
+                )
+            </if>
+            <if test="params.scopeTeacherUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_teacher ct
+                    where ct.course_id = t.course_id
+                      and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                )
+            </if>
+            <if test="params.scopeStudentUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_enrollment e
+                    where e.course_id = t.course_id
+                      and e.student_user_id = #{params.scopeStudentUserId}
+                )
+            </if>
+        </where>
+        order by t.assignment_id desc
+    </select>
+
+    <select id="selectEduAssignmentByAssignmentId" parameterType="Long" resultMap="EduAssignmentResult">
+        <include refid="selectEduAssignmentVo"/>
+        where t.assignment_id = #{assignmentId}
+    </select>
+
+    <insert id="insertEduAssignment" parameterType="com.ruoyi.system.domain.education.EduAssignment" useGeneratedKeys="true" keyProperty="assignmentId">
+        insert into edu_assignment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="title != null">title,</if>
+            <if test="assignmentType != null">assignment_type,</if>
+            <if test="content != null">content,</if>
+            <if test="totalScore != null">total_score,</if>
+            <if test="submitLimit != null">submit_limit,</if>
+            <if test="allowResubmit != null">allow_resubmit,</if>
+            <if test="deadlineTime != null">deadline_time,</if>
+            <if test="publishStatus != null">publish_status,</if>
+            <if test="publishUserId != null">publish_user_id,</if>
+            <if test="publishTime != null">publish_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="title != null">#{title},</if>
+            <if test="assignmentType != null">#{assignmentType},</if>
+            <if test="content != null">#{content},</if>
+            <if test="totalScore != null">#{totalScore},</if>
+            <if test="submitLimit != null">#{submitLimit},</if>
+            <if test="allowResubmit != null">#{allowResubmit},</if>
+            <if test="deadlineTime != null">#{deadlineTime},</if>
+            <if test="publishStatus != null">#{publishStatus},</if>
+            <if test="publishUserId != null">#{publishUserId},</if>
+            <if test="publishTime != null">#{publishTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduAssignment" parameterType="com.ruoyi.system.domain.education.EduAssignment">
+        update edu_assignment
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="assignmentType != null">assignment_type = #{assignmentType},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="totalScore != null">total_score = #{totalScore},</if>
+            <if test="submitLimit != null">submit_limit = #{submitLimit},</if>
+            <if test="allowResubmit != null">allow_resubmit = #{allowResubmit},</if>
+            <if test="deadlineTime != null">deadline_time = #{deadlineTime},</if>
+            <if test="publishStatus != null">publish_status = #{publishStatus},</if>
+            <if test="publishUserId != null">publish_user_id = #{publishUserId},</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where assignment_id = #{assignmentId}
+    </update>
+
+    <delete id="deleteEduAssignmentByAssignmentId" parameterType="Long">
+        delete from edu_assignment where assignment_id = #{assignmentId}
+    </delete>
+
+    <delete id="deleteEduAssignmentByAssignmentIds" parameterType="long">
+        delete from edu_assignment where assignment_id in
+        <foreach item="assignmentId" collection="array" open="(" separator="," close=")">
+            #{assignmentId}
+        </foreach>
+    </delete>
+</mapper>

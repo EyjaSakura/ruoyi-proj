@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduTeacherProfileMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduTeacherProfile" id="EduTeacherProfileResult">
+        <id property="teacherId" column="teacher_id" />
+        <result property="userId" column="user_id" />
+        <result property="teacherNo" column="teacher_no" />
+        <result property="teacherName" column="teacher_name" />
+        <result property="deptId" column="dept_id" />
+        <result property="deptName" column="dept_name" />
+        <result property="jobTitle" column="job_title" />
+        <result property="phone" column="phone" />
+        <result property="email" column="email" />
+        <result property="officeAddress" column="office_address" />
+        <result property="researchDirection" column="research_direction" />
+        <result property="intro" column="intro" />
+        <result property="status" column="status" />
+        <result property="delFlag" column="del_flag" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduTeacherProfileVo">
+        select
+            t.teacher_id,
+            t.user_id,
+            t.teacher_no,
+            t.teacher_name,
+            t.dept_id,
+            d.dept_name,
+            t.job_title,
+            t.phone,
+            t.email,
+            t.office_address,
+            t.research_direction,
+            t.intro,
+            t.status,
+            t.del_flag,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_teacher_profile t
+        left join sys_dept d on d.dept_id = t.dept_id
+    </sql>
+
+    <select id="selectEduTeacherProfileList" parameterType="com.ruoyi.system.domain.education.EduTeacherProfile" resultMap="EduTeacherProfileResult">
+        <include refid="selectEduTeacherProfileVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            and (t.del_flag is null or t.del_flag = '0')
+            <if test="userId != null"> and t.user_id = #{userId}</if>
+            <if test="teacherNo != null and teacherNo != ''"> and t.teacher_no like concat('%', #{teacherNo}, '%')</if>
+            <if test="teacherName != null and teacherName != ''"> and t.teacher_name like concat('%', #{teacherName}, '%')</if>
+            <if test="deptId != null"> and t.dept_id = #{deptId}</if>
+            <if test="status != null and status != ''"> and t.status = #{status}</if>
+        </where>
+        order by t.teacher_id desc
+    </select>
+
+    <select id="selectEduTeacherProfileByTeacherId" parameterType="Long" resultMap="EduTeacherProfileResult">
+        <include refid="selectEduTeacherProfileVo"/>
+        where t.teacher_id = #{teacherId}
+          and (t.del_flag is null or t.del_flag = '0')
+    </select>
+
+    <insert id="insertEduTeacherProfile" parameterType="com.ruoyi.system.domain.education.EduTeacherProfile" useGeneratedKeys="true" keyProperty="teacherId">
+        insert into edu_teacher_profile
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="teacherNo != null">teacher_no,</if>
+            <if test="teacherName != null">teacher_name,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="jobTitle != null">job_title,</if>
+            <if test="phone != null">phone,</if>
+            <if test="email != null">email,</if>
+            <if test="officeAddress != null">office_address,</if>
+            <if test="researchDirection != null">research_direction,</if>
+            <if test="intro != null">intro,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="teacherNo != null">#{teacherNo},</if>
+            <if test="teacherName != null">#{teacherName},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="jobTitle != null">#{jobTitle},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="email != null">#{email},</if>
+            <if test="officeAddress != null">#{officeAddress},</if>
+            <if test="researchDirection != null">#{researchDirection},</if>
+            <if test="intro != null">#{intro},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduTeacherProfile" parameterType="com.ruoyi.system.domain.education.EduTeacherProfile">
+        update edu_teacher_profile
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="teacherNo != null">teacher_no = #{teacherNo},</if>
+            <if test="teacherName != null">teacher_name = #{teacherName},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="jobTitle != null">job_title = #{jobTitle},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="officeAddress != null">office_address = #{officeAddress},</if>
+            <if test="researchDirection != null">research_direction = #{researchDirection},</if>
+            <if test="intro != null">intro = #{intro},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where teacher_id = #{teacherId}
+    </update>
+
+    <delete id="deleteEduTeacherProfileByTeacherId" parameterType="Long">
+        delete from edu_teacher_profile where teacher_id = #{teacherId}
+    </delete>
+
+    <delete id="deleteEduTeacherProfileByTeacherIds" parameterType="long">
+        delete from edu_teacher_profile where teacher_id in
+        <foreach item="teacherId" collection="array" open="(" separator="," close=")">
+            #{teacherId}
+        </foreach>
+    </delete>
+</mapper>

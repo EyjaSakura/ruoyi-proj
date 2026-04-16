@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.StudyLineMapper">
+    
+    <resultMap type="StudyLine" id="StudyLineResult">
+        <result property="id"    column="id"    />
+        <result property="courseType"    column="course_type"    />
+        <result property="courseStage"    column="course_stage"    />
+        <result property="courseStageInfo"    column="course_stage_info"    />
+        <result property="courseStageOrder"    column="course_stage_order"    />
+        <result property="createdTime"    column="created_time"    />
+        <result property="updatedTime"    column="updated_time"    />
+    </resultMap>
+
+    <sql id="selectStudyLineVo">
+        select id, course_type, course_stage, course_stage_info, course_stage_order, created_time, updated_time from study_line
+    </sql>
+
+    <select id="selectStudyLineList" parameterType="StudyLine" resultMap="StudyLineResult">
+        <include refid="selectStudyLineVo"/>
+        <where>  
+            <if test="courseType != null  and courseType != ''"> and course_type = #{courseType}</if>
+            <if test="courseStage != null  and courseStage != ''"> and course_stage = #{courseStage}</if>
+            <if test="courseStageInfo != null  and courseStageInfo != ''"> and course_stage_info = #{courseStageInfo}</if>
+            <if test="courseStageOrder != null  and courseStageOrder != ''"> and course_stage_order = #{courseStageOrder}</if>
+            <if test="createdTime != null "> and created_time = #{createdTime}</if>
+            <if test="updatedTime != null "> and updated_time = #{updatedTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectStudyLineById" parameterType="Long" resultMap="StudyLineResult">
+        <include refid="selectStudyLineVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertStudyLine" parameterType="StudyLine" useGeneratedKeys="true" keyProperty="id">
+        insert into study_line
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseType != null and courseType != ''">course_type,</if>
+            <if test="courseStage != null and courseStage != ''">course_stage,</if>
+            <if test="courseStageInfo != null and courseStageInfo != ''">course_stage_info,</if>
+            <if test="courseStageOrder != null and courseStageOrder != ''">course_stage_order,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedTime != null">updated_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseType != null and courseType != ''">#{courseType},</if>
+            <if test="courseStage != null and courseStage != ''">#{courseStage},</if>
+            <if test="courseStageInfo != null and courseStageInfo != ''">#{courseStageInfo},</if>
+            <if test="courseStageOrder != null and courseStageOrder != ''">#{courseStageOrder},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateStudyLine" parameterType="StudyLine">
+        update study_line
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseType != null and courseType != ''">course_type = #{courseType},</if>
+            <if test="courseStage != null and courseStage != ''">course_stage = #{courseStage},</if>
+            <if test="courseStageInfo != null and courseStageInfo != ''">course_stage_info = #{courseStageInfo},</if>
+            <if test="courseStageOrder != null and courseStageOrder != ''">course_stage_order = #{courseStageOrder},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteStudyLineById" parameterType="Long">
+        delete from study_line where id = #{id}
+    </delete>
+
+    <delete id="deleteStudyLineByIds" parameterType="String">
+        delete from study_line where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

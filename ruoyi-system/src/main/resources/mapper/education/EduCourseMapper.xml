@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduCourseMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduCourse" id="EduCourseResult">
+        <id property="courseId" column="course_id" />
+        <result property="termId" column="term_id" />
+        <result property="deptId" column="dept_id" />
+        <result property="courseCode" column="course_code" />
+        <result property="classNo" column="class_no" />
+        <result property="courseName" column="course_name" />
+        <result property="courseCover" column="course_cover" />
+        <result property="courseType" column="course_type" />
+        <result property="credit" column="credit" />
+        <result property="totalHours" column="total_hours" />
+        <result property="capacity" column="capacity" />
+        <result property="selectedCount" column="selected_count" />
+        <result property="selectStartTime" column="select_start_time" />
+        <result property="selectEndTime" column="select_end_time" />
+        <result property="intro" column="intro" />
+        <result property="completeRule" column="complete_rule" />
+        <result property="status" column="status" />
+        <result property="delFlag" column="del_flag" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduCourseVo">
+        select
+            t.course_id,
+            t.term_id,
+            t.dept_id,
+            t.course_code,
+            t.class_no,
+            t.course_name,
+            t.course_cover,
+            t.course_type,
+            t.credit,
+            t.total_hours,
+            t.capacity,
+            t.selected_count,
+            t.select_start_time,
+            t.select_end_time,
+            t.intro,
+            t.complete_rule,
+            t.status,
+            t.del_flag,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_course t
+    </sql>
+
+    <select id="selectEduCourseList" parameterType="com.ruoyi.system.domain.education.EduCourse" resultMap="EduCourseResult">
+        <include refid="selectEduCourseVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            and (t.del_flag is null or t.del_flag = '0')
+            <if test="courseCode != null and courseCode != ''"> and t.course_code like concat('%', #{courseCode}, '%')</if>
+            <if test="classNo != null and classNo != ''"> and t.class_no = #{classNo}</if>
+            <if test="courseName != null and courseName != ''"> and t.course_name like concat('%', #{courseName}, '%')</if>
+            <if test="status != null and status != ''"> and t.status = #{status}</if>
+            <if test="deptId != null"> and t.dept_id = #{deptId}</if>
+            <if test="params.scopeTeacherUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_teacher ct
+                    where ct.course_id = t.course_id
+                      and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                )
+            </if>
+            <if test="params.scopePublishedOnly != null"> and t.status = '1'</if>
+        </where>
+        order by t.course_id desc
+    </select>
+
+    <select id="selectEduCourseByCourseId" parameterType="Long" resultMap="EduCourseResult">
+        <include refid="selectEduCourseVo"/>
+        where t.course_id = #{courseId}
+          and (t.del_flag is null or t.del_flag = '0')
+    </select>
+
+    <insert id="insertEduCourse" parameterType="com.ruoyi.system.domain.education.EduCourse" useGeneratedKeys="true" keyProperty="courseId">
+        insert into edu_course
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="termId != null">term_id,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="courseCode != null">course_code,</if>
+            <if test="classNo != null">class_no,</if>
+            <if test="courseName != null">course_name,</if>
+            <if test="courseCover != null">course_cover,</if>
+            <if test="courseType != null">course_type,</if>
+            <if test="credit != null">credit,</if>
+            <if test="totalHours != null">total_hours,</if>
+            <if test="capacity != null">capacity,</if>
+            <if test="selectedCount != null">selected_count,</if>
+            <if test="selectStartTime != null">select_start_time,</if>
+            <if test="selectEndTime != null">select_end_time,</if>
+            <if test="intro != null">intro,</if>
+            <if test="completeRule != null">complete_rule,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="termId != null">#{termId},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="courseCode != null">#{courseCode},</if>
+            <if test="classNo != null">#{classNo},</if>
+            <if test="courseName != null">#{courseName},</if>
+            <if test="courseCover != null">#{courseCover},</if>
+            <if test="courseType != null">#{courseType},</if>
+            <if test="credit != null">#{credit},</if>
+            <if test="totalHours != null">#{totalHours},</if>
+            <if test="capacity != null">#{capacity},</if>
+            <if test="selectedCount != null">#{selectedCount},</if>
+            <if test="selectStartTime != null">#{selectStartTime},</if>
+            <if test="selectEndTime != null">#{selectEndTime},</if>
+            <if test="intro != null">#{intro},</if>
+            <if test="completeRule != null">#{completeRule},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduCourse" parameterType="com.ruoyi.system.domain.education.EduCourse">
+        update edu_course
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="termId != null">term_id = #{termId},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="courseCode != null">course_code = #{courseCode},</if>
+            <if test="classNo != null">class_no = #{classNo},</if>
+            <if test="courseName != null">course_name = #{courseName},</if>
+            <if test="courseCover != null">course_cover = #{courseCover},</if>
+            <if test="courseType != null">course_type = #{courseType},</if>
+            <if test="credit != null">credit = #{credit},</if>
+            <if test="totalHours != null">total_hours = #{totalHours},</if>
+            <if test="capacity != null">capacity = #{capacity},</if>
+            <if test="selectedCount != null">selected_count = #{selectedCount},</if>
+            <if test="selectStartTime != null">select_start_time = #{selectStartTime},</if>
+            <if test="selectEndTime != null">select_end_time = #{selectEndTime},</if>
+            <if test="intro != null">intro = #{intro},</if>
+            <if test="completeRule != null">complete_rule = #{completeRule},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where course_id = #{courseId}
+    </update>
+
+    <delete id="deleteEduCourseByCourseId" parameterType="Long">
+        delete from edu_course where course_id = #{courseId}
+    </delete>
+
+    <delete id="deleteEduCourseByCourseIds" parameterType="long">
+        delete from edu_course where course_id in
+        <foreach item="courseId" collection="array" open="(" separator="," close=")">
+            #{courseId}
+        </foreach>
+    </delete>
+
+    <!-- 唯一性校验：检查同一学期同一课程号+课序号是否已存在（排除自身） -->
+    <select id="countByUniqueKey" resultType="int">
+        select count(1) from edu_course
+        where term_id = #{termId}
+          and course_code = #{courseCode}
+          and class_no = #{classNo}
+          and (del_flag is null or del_flag = '0')
+          <if test="excludeCourseId != null"> and course_id != #{excludeCourseId}</if>
+    </select>
+
+    <!-- 模糊搜索课程（用于下拉框实时搜索） -->
+    <select id="selectCourseForSearch" resultMap="EduCourseResult">
+        <include refid="selectEduCourseVo"/>
+        <where>
+            and (t.del_flag is null or t.del_flag = '0')
+            <if test="courseName != null and courseName != ''">
+                and t.course_name like concat('%', #{courseName}, '%')
+            </if>
+            <if test="deptId != null">
+                and t.dept_id = #{deptId}
+            </if>
+        </where>
+        order by t.course_id desc
+        limit 20
+    </select>
+</mapper>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduAssignmentAttachmentMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduAssignmentAttachment" id="EduAssignmentAttachmentResult">
+        <id property="assignmentAttachmentId" column="assignment_attachment_id" />
+        <result property="assignmentId" column="assignment_id" />
+        <result property="fileName" column="file_name" />
+        <result property="fileUrl" column="file_url" />
+        <result property="fileSuffix" column="file_suffix" />
+        <result property="fileSize" column="file_size" />
+        <result property="orderNum" column="order_num" />
+        <result property="uploadUserId" column="upload_user_id" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduAssignmentAttachmentVo">
+        select
+            t.assignment_attachment_id,
+            t.assignment_id,
+            t.file_name,
+            t.file_url,
+            t.file_suffix,
+            t.file_size,
+            t.order_num,
+            t.upload_user_id,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_assignment_attachment t
+    </sql>
+
+    <select id="selectEduAssignmentAttachmentList" parameterType="com.ruoyi.system.domain.education.EduAssignmentAttachment" resultMap="EduAssignmentAttachmentResult">
+        <include refid="selectEduAssignmentAttachmentVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            <if test="assignmentId != null"> and t.assignment_id = #{assignmentId}</if>
+            <if test="fileName != null and fileName != ''"> and t.file_name like concat('%', #{fileName}, '%')</if>
+            <if test="params.scopeDeptId != null">
+                and exists (
+                    select 1
+                    from edu_assignment a
+                    join edu_course c on c.course_id = a.course_id
+                    where a.assignment_id = t.assignment_id
+                      and c.dept_id = #{params.scopeDeptId}
+                      and (c.del_flag is null or c.del_flag = '0')
+                )
+            </if>
+            <if test="params.scopeTeacherUserId != null">
+                and exists (
+                    select 1
+                    from edu_assignment a
+                    join edu_course_teacher ct on ct.course_id = a.course_id
+                    where a.assignment_id = t.assignment_id
+                      and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                )
+            </if>
+            <if test="params.scopeStudentUserId != null">
+                and exists (
+                    select 1
+                    from edu_assignment a
+                    join edu_course_enrollment e on e.course_id = a.course_id
+                    where a.assignment_id = t.assignment_id
+                      and e.student_user_id = #{params.scopeStudentUserId}
+                )
+            </if>
+        </where>
+        order by t.assignment_attachment_id desc
+    </select>
+
+    <select id="selectEduAssignmentAttachmentByAssignmentAttachmentId" parameterType="Long" resultMap="EduAssignmentAttachmentResult">
+        <include refid="selectEduAssignmentAttachmentVo"/>
+        where t.assignment_attachment_id = #{assignmentAttachmentId}
+    </select>
+
+    <insert id="insertEduAssignmentAttachment" parameterType="com.ruoyi.system.domain.education.EduAssignmentAttachment" useGeneratedKeys="true" keyProperty="assignmentAttachmentId">
+        insert into edu_assignment_attachment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="assignmentId != null">assignment_id,</if>
+            <if test="fileName != null">file_name,</if>
+            <if test="fileUrl != null">file_url,</if>
+            <if test="fileSuffix != null">file_suffix,</if>
+            <if test="fileSize != null">file_size,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="uploadUserId != null">upload_user_id,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="assignmentId != null">#{assignmentId},</if>
+            <if test="fileName != null">#{fileName},</if>
+            <if test="fileUrl != null">#{fileUrl},</if>
+            <if test="fileSuffix != null">#{fileSuffix},</if>
+            <if test="fileSize != null">#{fileSize},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="uploadUserId != null">#{uploadUserId},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduAssignmentAttachment" parameterType="com.ruoyi.system.domain.education.EduAssignmentAttachment">
+        update edu_assignment_attachment
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="assignmentId != null">assignment_id = #{assignmentId},</if>
+            <if test="fileName != null">file_name = #{fileName},</if>
+            <if test="fileUrl != null">file_url = #{fileUrl},</if>
+            <if test="fileSuffix != null">file_suffix = #{fileSuffix},</if>
+            <if test="fileSize != null">file_size = #{fileSize},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="uploadUserId != null">upload_user_id = #{uploadUserId},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where assignment_attachment_id = #{assignmentAttachmentId}
+    </update>
+
+    <delete id="deleteEduAssignmentAttachmentByAssignmentAttachmentId" parameterType="Long">
+        delete from edu_assignment_attachment where assignment_attachment_id = #{assignmentAttachmentId}
+    </delete>
+
+    <delete id="deleteEduAssignmentAttachmentByAssignmentAttachmentIds" parameterType="long">
+        delete from edu_assignment_attachment where assignment_attachment_id in
+        <foreach item="assignmentAttachmentId" collection="array" open="(" separator="," close=")">
+            #{assignmentAttachmentId}
+        </foreach>
+    </delete>
+</mapper>

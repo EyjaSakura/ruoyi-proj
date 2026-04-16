@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EducationStatisticsMapper">
+
+    <select id="selectSummary" resultType="java.util.HashMap">
+        select
+            (select count(1) from edu_course where del_flag = '0') as courseCount,
+            (select count(1) from edu_teacher_profile where del_flag = '0' and status = '0') as teacherCount,
+            (select count(1) from edu_student_profile where del_flag = '0' and status = '0') as studentCount,
+            (select count(1) from edu_course_enrollment where enroll_status in ('1', '3')) as enrollmentCount,
+            (select count(1) from edu_assignment where publish_status = '1') as assignmentCount,
+            (select count(1) from edu_assignment_submission where review_status = '1') as reviewedCount,
+            ifnull((select round(sum(case when review_status = '1' then 1 else 0 end) / count(1) * 100, 2) from edu_assignment_submission), 0) as reviewRate,
+            ifnull((select round(avg(progress_percent), 2) from edu_course_enrollment where enroll_status in ('1', '3')), 0) as avgProgress
+    </select>
+
+    <select id="selectCourseStats" resultType="java.util.HashMap">
+        select
+            c.course_id as courseId,
+            c.course_name as courseName,
+            t.term_name as termName,
+            c.selected_count as selectedCount,
+            ifnull(round(avg(e.progress_percent), 2), 0) as avgProgress,
+            sum(case when e.enroll_status = '3' then 1 else 0 end) as finishedCount
+        from edu_course c
+        left join edu_term t on c.term_id = t.term_id
+        left join edu_course_enrollment e on c.course_id = e.course_id and e.enroll_status in ('1', '3')
+        where c.del_flag = '0'
+        group by c.course_id, c.course_name, t.term_name, c.selected_count
+        order by c.selected_count desc, avgProgress desc
+        limit 8
+    </select>
+
+    <select id="selectTeacherWorkload" resultType="java.util.HashMap">
+        select
+            ct.teacher_user_id as teacherUserId,
+            ifnull(u.nick_name, tp.teacher_name) as teacherName,
+            count(distinct ct.course_id) as courseCount,
+            count(distinct a.assignment_id) as assignmentCount,
+            sum(case when a.publish_status = '1' then 1 else 0 end) as publishedAssignmentCount
+        from edu_course_teacher ct
+        left join sys_user u on ct.teacher_user_id = u.user_id
+        left join edu_teacher_profile tp on ct.teacher_user_id = tp.user_id
+        left join edu_assignment a on ct.course_id = a.course_id
+        where ct.status = '0'
+        group by ct.teacher_user_id, ifnull(u.nick_name, tp.teacher_name)
+        order by courseCount desc, assignmentCount desc
+        limit 8
+    </select>
+
+    <select id="selectDeadlineAssignments" resultType="java.util.HashMap">
+        select
+            a.assignment_id as assignmentId,
+            c.course_name as courseName,
+            a.title as title,
+            a.deadline_time as deadlineTime,
+            sum(case when s.review_status = '0' then 1 else 0 end) as pendingReviewCount
+        from edu_assignment a
+        left join edu_course c on a.course_id = c.course_id
+        left join edu_assignment_submission s on a.assignment_id = s.assignment_id and s.is_latest = '1'
+        where a.publish_status = '1'
+        group by a.assignment_id, c.course_name, a.title, a.deadline_time
+        order by a.deadline_time asc
+        limit 8
+    </select>
+</mapper>

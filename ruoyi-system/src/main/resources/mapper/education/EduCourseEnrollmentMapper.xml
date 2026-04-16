@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduCourseEnrollmentMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduCourseEnrollment" id="EduCourseEnrollmentResult">
+        <id property="enrollmentId" column="enrollment_id" />
+        <result property="courseId" column="course_id" />
+        <result property="termId" column="term_id" />
+        <result property="studentUserId" column="student_user_id" />
+        <result property="sourceType" column="source_type" />
+        <result property="enrollTime" column="enroll_time" />
+        <result property="dropTime" column="drop_time" />
+        <result property="finishTime" column="finish_time" />
+        <result property="enrollStatus" column="enroll_status" />
+        <result property="progressPercent" column="progress_percent" />
+        <result property="requiredTaskCount" column="required_task_count" />
+        <result property="finishedTaskCount" column="finished_task_count" />
+        <result property="lastStudyTime" column="last_study_time" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduCourseEnrollmentVo">
+        select
+            t.enrollment_id,
+            t.course_id,
+            t.term_id,
+            t.student_user_id,
+            t.source_type,
+            t.enroll_time,
+            t.drop_time,
+            t.finish_time,
+            t.enroll_status,
+            t.progress_percent,
+            t.required_task_count,
+            t.finished_task_count,
+            t.last_study_time,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_course_enrollment t
+    </sql>
+
+    <select id="selectEduCourseEnrollmentList" parameterType="com.ruoyi.system.domain.education.EduCourseEnrollment" resultMap="EduCourseEnrollmentResult">
+        <include refid="selectEduCourseEnrollmentVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            <if test="courseId != null"> and t.course_id = #{courseId}</if>
+            <if test="studentUserId != null"> and t.student_user_id = #{studentUserId}</if>
+            <if test="enrollStatus != null and enrollStatus != ''"> and t.enroll_status = #{enrollStatus}</if>
+            <if test="params.scopeDeptId != null">
+                and exists (
+                    select 1
+                    from edu_course c
+                    where c.course_id = t.course_id
+                      and c.dept_id = #{params.scopeDeptId}
+                      and (c.del_flag is null or c.del_flag = '0')
+                )
+            </if>
+            <if test="params.scopeTeacherUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_teacher ct
+                    where ct.course_id = t.course_id
+                      and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                )
+            </if>
+        </where>
+        order by t.enrollment_id desc
+    </select>
+
+    <select id="selectEduCourseEnrollmentByEnrollmentId" parameterType="Long" resultMap="EduCourseEnrollmentResult">
+        <include refid="selectEduCourseEnrollmentVo"/>
+        where t.enrollment_id = #{enrollmentId}
+    </select>
+
+    <insert id="insertEduCourseEnrollment" parameterType="com.ruoyi.system.domain.education.EduCourseEnrollment" useGeneratedKeys="true" keyProperty="enrollmentId">
+        insert into edu_course_enrollment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="termId != null">term_id,</if>
+            <if test="studentUserId != null">student_user_id,</if>
+            <if test="sourceType != null">source_type,</if>
+            <if test="enrollTime != null">enroll_time,</if>
+            <if test="dropTime != null">drop_time,</if>
+            <if test="finishTime != null">finish_time,</if>
+            <if test="enrollStatus != null">enroll_status,</if>
+            <if test="progressPercent != null">progress_percent,</if>
+            <if test="requiredTaskCount != null">required_task_count,</if>
+            <if test="finishedTaskCount != null">finished_task_count,</if>
+            <if test="lastStudyTime != null">last_study_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="termId != null">#{termId},</if>
+            <if test="studentUserId != null">#{studentUserId},</if>
+            <if test="sourceType != null">#{sourceType},</if>
+            <if test="enrollTime != null">#{enrollTime},</if>
+            <if test="dropTime != null">#{dropTime},</if>
+            <if test="finishTime != null">#{finishTime},</if>
+            <if test="enrollStatus != null">#{enrollStatus},</if>
+            <if test="progressPercent != null">#{progressPercent},</if>
+            <if test="requiredTaskCount != null">#{requiredTaskCount},</if>
+            <if test="finishedTaskCount != null">#{finishedTaskCount},</if>
+            <if test="lastStudyTime != null">#{lastStudyTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduCourseEnrollment" parameterType="com.ruoyi.system.domain.education.EduCourseEnrollment">
+        update edu_course_enrollment
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="termId != null">term_id = #{termId},</if>
+            <if test="studentUserId != null">student_user_id = #{studentUserId},</if>
+            <if test="sourceType != null">source_type = #{sourceType},</if>
+            <if test="enrollTime != null">enroll_time = #{enrollTime},</if>
+            <if test="dropTime != null">drop_time = #{dropTime},</if>
+            <if test="finishTime != null">finish_time = #{finishTime},</if>
+            <if test="enrollStatus != null">enroll_status = #{enrollStatus},</if>
+            <if test="progressPercent != null">progress_percent = #{progressPercent},</if>
+            <if test="requiredTaskCount != null">required_task_count = #{requiredTaskCount},</if>
+            <if test="finishedTaskCount != null">finished_task_count = #{finishedTaskCount},</if>
+            <if test="lastStudyTime != null">last_study_time = #{lastStudyTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where enrollment_id = #{enrollmentId}
+    </update>
+
+    <delete id="deleteEduCourseEnrollmentByEnrollmentId" parameterType="Long">
+        delete from edu_course_enrollment where enrollment_id = #{enrollmentId}
+    </delete>
+
+    <delete id="deleteEduCourseEnrollmentByEnrollmentIds" parameterType="long">
+        delete from edu_course_enrollment where enrollment_id in
+        <foreach item="enrollmentId" collection="array" open="(" separator="," close=")">
+            #{enrollmentId}
+        </foreach>
+    </delete>
+</mapper>

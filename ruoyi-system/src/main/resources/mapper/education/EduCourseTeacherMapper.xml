@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduCourseTeacherMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduCourseTeacher" id="EduCourseTeacherResult">
+        <id property="courseTeacherId" column="course_teacher_id" />
+        <result property="courseId" column="course_id" />
+        <result property="teacherUserId" column="teacher_user_id" />
+        <result property="teacherRole" column="teacher_role" />
+        <result property="isOwner" column="is_owner" />
+        <result property="orderNum" column="order_num" />
+        <result property="status" column="status" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduCourseTeacherVo">
+        select
+            t.course_teacher_id,
+            t.course_id,
+            t.teacher_user_id,
+            t.teacher_role,
+            t.is_owner,
+            t.order_num,
+            t.status,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_course_teacher t
+    </sql>
+
+    <select id="selectEduCourseTeacherList" parameterType="com.ruoyi.system.domain.education.EduCourseTeacher" resultMap="EduCourseTeacherResult">
+        <include refid="selectEduCourseTeacherVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            <if test="courseId != null"> and t.course_id = #{courseId}</if>
+            <if test="teacherUserId != null"> and t.teacher_user_id = #{teacherUserId}</if>
+            <if test="status != null and status != ''"> and t.status = #{status}</if>
+            <if test="params.scopeDeptId != null">
+                and exists (
+                    select 1
+                    from edu_course c
+                    where c.course_id = t.course_id
+                      and c.dept_id = #{params.scopeDeptId}
+                      and (c.del_flag is null or c.del_flag = '0')
+                )
+            </if>
+        </where>
+        order by t.course_teacher_id desc
+    </select>
+
+    <select id="selectEduCourseTeacherByCourseTeacherId" parameterType="Long" resultMap="EduCourseTeacherResult">
+        <include refid="selectEduCourseTeacherVo"/>
+        where t.course_teacher_id = #{courseTeacherId}
+    </select>
+
+    <insert id="insertEduCourseTeacher" parameterType="com.ruoyi.system.domain.education.EduCourseTeacher" useGeneratedKeys="true" keyProperty="courseTeacherId">
+        insert into edu_course_teacher
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="teacherUserId != null">teacher_user_id,</if>
+            <if test="teacherRole != null">teacher_role,</if>
+            <if test="isOwner != null">is_owner,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="teacherUserId != null">#{teacherUserId},</if>
+            <if test="teacherRole != null">#{teacherRole},</if>
+            <if test="isOwner != null">#{isOwner},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduCourseTeacher" parameterType="com.ruoyi.system.domain.education.EduCourseTeacher">
+        update edu_course_teacher
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="teacherUserId != null">teacher_user_id = #{teacherUserId},</if>
+            <if test="teacherRole != null">teacher_role = #{teacherRole},</if>
+            <if test="isOwner != null">is_owner = #{isOwner},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where course_teacher_id = #{courseTeacherId}
+    </update>
+
+    <delete id="deleteEduCourseTeacherByCourseTeacherId" parameterType="Long">
+        delete from edu_course_teacher where course_teacher_id = #{courseTeacherId}
+    </delete>
+
+    <delete id="deleteEduCourseTeacherByCourseTeacherIds" parameterType="long">
+        delete from edu_course_teacher where course_teacher_id in
+        <foreach item="courseTeacherId" collection="array" open="(" separator="," close=")">
+            #{courseTeacherId}
+        </foreach>
+    </delete>
+</mapper>

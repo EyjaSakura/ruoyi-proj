@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduCourseChapterMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduCourseChapter" id="EduCourseChapterResult">
+        <id property="chapterId" column="chapter_id" />
+        <result property="courseId" column="course_id" />
+        <result property="parentId" column="parent_id" />
+        <result property="ancestors" column="ancestors" />
+        <result property="chapterTitle" column="chapter_title" />
+        <result property="chapterType" column="chapter_type" />
+        <result property="chapterDesc" column="chapter_desc" />
+        <result property="orderNum" column="order_num" />
+        <result property="durationMinutes" column="duration_minutes" />
+        <result property="status" column="status" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduCourseChapterVo">
+        select
+            t.chapter_id,
+            t.course_id,
+            t.parent_id,
+            t.ancestors,
+            t.chapter_title,
+            t.chapter_type,
+            t.chapter_desc,
+            t.order_num,
+            t.duration_minutes,
+            t.status,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_course_chapter t
+    </sql>
+
+    <select id="selectEduCourseChapterList" parameterType="com.ruoyi.system.domain.education.EduCourseChapter" resultMap="EduCourseChapterResult">
+        <include refid="selectEduCourseChapterVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            <if test="courseId != null"> and t.course_id = #{courseId}</if>
+            <if test="chapterTitle != null and chapterTitle != ''"> and t.chapter_title like concat('%', #{chapterTitle}, '%')</if>
+            <if test="status != null and status != ''"> and t.status = #{status}</if>
+            <if test="params.scopeDeptId != null">
+                and exists (
+                    select 1
+                    from edu_course c
+                    where c.course_id = t.course_id
+                      and c.dept_id = #{params.scopeDeptId}
+                      and (c.del_flag is null or c.del_flag = '0')
+                )
+            </if>
+            <if test="params.scopeTeacherUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_teacher ct
+                    where ct.course_id = t.course_id
+                      and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                )
+            </if>
+            <if test="params.scopeStudentUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_enrollment e
+                    where e.course_id = t.course_id
+                      and e.student_user_id = #{params.scopeStudentUserId}
+                )
+            </if>
+        </where>
+        order by t.chapter_id desc
+    </select>
+
+    <select id="selectEduCourseChapterByChapterId" parameterType="Long" resultMap="EduCourseChapterResult">
+        <include refid="selectEduCourseChapterVo"/>
+        where t.chapter_id = #{chapterId}
+    </select>
+
+    <insert id="insertEduCourseChapter" parameterType="com.ruoyi.system.domain.education.EduCourseChapter" useGeneratedKeys="true" keyProperty="chapterId">
+        insert into edu_course_chapter
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="ancestors != null">ancestors,</if>
+            <if test="chapterTitle != null">chapter_title,</if>
+            <if test="chapterType != null">chapter_type,</if>
+            <if test="chapterDesc != null">chapter_desc,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="durationMinutes != null">duration_minutes,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="ancestors != null">#{ancestors},</if>
+            <if test="chapterTitle != null">#{chapterTitle},</if>
+            <if test="chapterType != null">#{chapterType},</if>
+            <if test="chapterDesc != null">#{chapterDesc},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="durationMinutes != null">#{durationMinutes},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduCourseChapter" parameterType="com.ruoyi.system.domain.education.EduCourseChapter">
+        update edu_course_chapter
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="ancestors != null">ancestors = #{ancestors},</if>
+            <if test="chapterTitle != null">chapter_title = #{chapterTitle},</if>
+            <if test="chapterType != null">chapter_type = #{chapterType},</if>
+            <if test="chapterDesc != null">chapter_desc = #{chapterDesc},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="durationMinutes != null">duration_minutes = #{durationMinutes},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where chapter_id = #{chapterId}
+    </update>
+
+    <delete id="deleteEduCourseChapterByChapterId" parameterType="Long">
+        delete from edu_course_chapter where chapter_id = #{chapterId}
+    </delete>
+
+    <delete id="deleteEduCourseChapterByChapterIds" parameterType="long">
+        delete from edu_course_chapter where chapter_id in
+        <foreach item="chapterId" collection="array" open="(" separator="," close=")">
+            #{chapterId}
+        </foreach>
+    </delete>
+</mapper>

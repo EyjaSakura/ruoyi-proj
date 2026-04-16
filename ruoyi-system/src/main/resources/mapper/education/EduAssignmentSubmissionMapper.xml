@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduAssignmentSubmissionMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduAssignmentSubmission" id="EduAssignmentSubmissionResult">
+        <id property="submissionId" column="submission_id" />
+        <result property="assignmentId" column="assignment_id" />
+        <result property="courseId" column="course_id" />
+        <result property="studentUserId" column="student_user_id" />
+        <result property="submitRound" column="submit_round" />
+        <result property="submitRemark" column="submit_remark" />
+        <result property="submitTime" column="submit_time" />
+        <result property="lateFlag" column="late_flag" />
+        <result property="isLatest" column="is_latest" />
+        <result property="reviewStatus" column="review_status" />
+        <result property="score" column="score" />
+        <result property="teacherComment" column="teacher_comment" />
+        <result property="reviewUserId" column="review_user_id" />
+        <result property="reviewTime" column="review_time" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduAssignmentSubmissionVo">
+        select
+            t.submission_id,
+            t.assignment_id,
+            t.course_id,
+            t.student_user_id,
+            t.submit_round,
+            t.submit_remark,
+            t.submit_time,
+            t.late_flag,
+            t.is_latest,
+            t.review_status,
+            t.score,
+            t.teacher_comment,
+            t.review_user_id,
+            t.review_time,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_assignment_submission t
+    </sql>
+
+    <select id="selectEduAssignmentSubmissionList" parameterType="com.ruoyi.system.domain.education.EduAssignmentSubmission" resultMap="EduAssignmentSubmissionResult">
+        <include refid="selectEduAssignmentSubmissionVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            <if test="assignmentId != null"> and t.assignment_id = #{assignmentId}</if>
+            <if test="studentUserId != null"> and t.student_user_id = #{studentUserId}</if>
+            <if test="reviewStatus != null and reviewStatus != ''"> and t.review_status = #{reviewStatus}</if>
+            <if test="params.scopeDeptId != null">
+                and exists (
+                    select 1
+                    from edu_course c
+                    where c.course_id = t.course_id
+                      and c.dept_id = #{params.scopeDeptId}
+                      and (c.del_flag is null or c.del_flag = '0')
+                )
+            </if>
+            <if test="params.scopeTeacherUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_teacher ct
+                    where ct.course_id = t.course_id
+                      and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                )
+            </if>
+        </where>
+        order by t.submission_id desc
+    </select>
+
+    <select id="selectEduAssignmentSubmissionBySubmissionId" parameterType="Long" resultMap="EduAssignmentSubmissionResult">
+        <include refid="selectEduAssignmentSubmissionVo"/>
+        where t.submission_id = #{submissionId}
+    </select>
+
+    <insert id="insertEduAssignmentSubmission" parameterType="com.ruoyi.system.domain.education.EduAssignmentSubmission" useGeneratedKeys="true" keyProperty="submissionId">
+        insert into edu_assignment_submission
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="assignmentId != null">assignment_id,</if>
+            <if test="courseId != null">course_id,</if>
+            <if test="studentUserId != null">student_user_id,</if>
+            <if test="submitRound != null">submit_round,</if>
+            <if test="submitRemark != null">submit_remark,</if>
+            <if test="submitTime != null">submit_time,</if>
+            <if test="lateFlag != null">late_flag,</if>
+            <if test="isLatest != null">is_latest,</if>
+            <if test="reviewStatus != null">review_status,</if>
+            <if test="score != null">score,</if>
+            <if test="teacherComment != null">teacher_comment,</if>
+            <if test="reviewUserId != null">review_user_id,</if>
+            <if test="reviewTime != null">review_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="assignmentId != null">#{assignmentId},</if>
+            <if test="courseId != null">#{courseId},</if>
+            <if test="studentUserId != null">#{studentUserId},</if>
+            <if test="submitRound != null">#{submitRound},</if>
+            <if test="submitRemark != null">#{submitRemark},</if>
+            <if test="submitTime != null">#{submitTime},</if>
+            <if test="lateFlag != null">#{lateFlag},</if>
+            <if test="isLatest != null">#{isLatest},</if>
+            <if test="reviewStatus != null">#{reviewStatus},</if>
+            <if test="score != null">#{score},</if>
+            <if test="teacherComment != null">#{teacherComment},</if>
+            <if test="reviewUserId != null">#{reviewUserId},</if>
+            <if test="reviewTime != null">#{reviewTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduAssignmentSubmission" parameterType="com.ruoyi.system.domain.education.EduAssignmentSubmission">
+        update edu_assignment_submission
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="assignmentId != null">assignment_id = #{assignmentId},</if>
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="studentUserId != null">student_user_id = #{studentUserId},</if>
+            <if test="submitRound != null">submit_round = #{submitRound},</if>
+            <if test="submitRemark != null">submit_remark = #{submitRemark},</if>
+            <if test="submitTime != null">submit_time = #{submitTime},</if>
+            <if test="lateFlag != null">late_flag = #{lateFlag},</if>
+            <if test="isLatest != null">is_latest = #{isLatest},</if>
+            <if test="reviewStatus != null">review_status = #{reviewStatus},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="teacherComment != null">teacher_comment = #{teacherComment},</if>
+            <if test="reviewUserId != null">review_user_id = #{reviewUserId},</if>
+            <if test="reviewTime != null">review_time = #{reviewTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where submission_id = #{submissionId}
+    </update>
+
+    <delete id="deleteEduAssignmentSubmissionBySubmissionId" parameterType="Long">
+        delete from edu_assignment_submission where submission_id = #{submissionId}
+    </delete>
+
+    <delete id="deleteEduAssignmentSubmissionBySubmissionIds" parameterType="long">
+        delete from edu_assignment_submission where submission_id in
+        <foreach item="submissionId" collection="array" open="(" separator="," close=")">
+            #{submissionId}
+        </foreach>
+    </delete>
+</mapper>

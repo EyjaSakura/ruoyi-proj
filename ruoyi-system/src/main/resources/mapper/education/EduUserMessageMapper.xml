@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduUserMessageMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduUserMessage" id="EduUserMessageResult">
+        <id property="messageId" column="message_id" />
+        <result property="userId" column="user_id" />
+        <result property="courseId" column="course_id" />
+        <result property="assignmentId" column="assignment_id" />
+        <result property="noticeId" column="notice_id" />
+        <result property="bizType" column="biz_type" />
+        <result property="messageTitle" column="message_title" />
+        <result property="messageContent" column="message_content" />
+        <result property="senderUserId" column="sender_user_id" />
+        <result property="sendTime" column="send_time" />
+        <result property="readStatus" column="read_status" />
+        <result property="readTime" column="read_time" />
+        <result property="linkPath" column="link_path" />
+        <result property="expireTime" column="expire_time" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduUserMessageVo">
+        select
+            t.message_id,
+            t.user_id,
+            t.course_id,
+            t.assignment_id,
+            t.notice_id,
+            t.biz_type,
+            t.message_title,
+            t.message_content,
+            t.sender_user_id,
+            t.send_time,
+            t.read_status,
+            t.read_time,
+            t.link_path,
+            t.expire_time,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_user_message t
+    </sql>
+
+    <select id="selectEduUserMessageList" parameterType="com.ruoyi.system.domain.education.EduUserMessage" resultMap="EduUserMessageResult">
+        <include refid="selectEduUserMessageVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            <if test="userId != null"> and t.user_id = #{userId}</if>
+            <if test="messageTitle != null and messageTitle != ''"> and t.message_title like concat('%', #{messageTitle}, '%')</if>
+            <if test="readStatus != null and readStatus != ''"> and t.read_status = #{readStatus}</if>
+            <if test="params.scopeDeptId != null">
+                and (
+                    exists (
+                        select 1
+                        from edu_course c
+                        where t.course_id is not null
+                          and c.course_id = t.course_id
+                          and c.dept_id = #{params.scopeDeptId}
+                          and (c.del_flag is null or c.del_flag = '0')
+                    )
+                    or exists (
+                        select 1
+                        from sys_user u
+                        where u.user_id = t.user_id
+                          and u.dept_id = #{params.scopeDeptId}
+                    )
+                )
+            </if>
+            <if test="params.scopeTeacherUserId != null">
+                and (
+                    t.sender_user_id = #{params.scopeTeacherUserId}
+                    or exists (
+                        select 1
+                        from edu_course_teacher ct
+                        where t.course_id is not null
+                          and ct.course_id = t.course_id
+                          and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                    )
+                    or exists (
+                        select 1
+                        from edu_course_enrollment e
+                        join edu_course_teacher ct on ct.course_id = e.course_id
+                        where e.student_user_id = t.user_id
+                          and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                    )
+                )
+            </if>
+        </where>
+        order by t.message_id desc
+    </select>
+
+    <select id="selectEduUserMessageByMessageId" parameterType="Long" resultMap="EduUserMessageResult">
+        <include refid="selectEduUserMessageVo"/>
+        where t.message_id = #{messageId}
+    </select>
+
+    <insert id="insertEduUserMessage" parameterType="com.ruoyi.system.domain.education.EduUserMessage" useGeneratedKeys="true" keyProperty="messageId">
+        insert into edu_user_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="courseId != null">course_id,</if>
+            <if test="assignmentId != null">assignment_id,</if>
+            <if test="noticeId != null">notice_id,</if>
+            <if test="bizType != null">biz_type,</if>
+            <if test="messageTitle != null">message_title,</if>
+            <if test="messageContent != null">message_content,</if>
+            <if test="senderUserId != null">sender_user_id,</if>
+            <if test="sendTime != null">send_time,</if>
+            <if test="readStatus != null">read_status,</if>
+            <if test="readTime != null">read_time,</if>
+            <if test="linkPath != null">link_path,</if>
+            <if test="expireTime != null">expire_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="courseId != null">#{courseId},</if>
+            <if test="assignmentId != null">#{assignmentId},</if>
+            <if test="noticeId != null">#{noticeId},</if>
+            <if test="bizType != null">#{bizType},</if>
+            <if test="messageTitle != null">#{messageTitle},</if>
+            <if test="messageContent != null">#{messageContent},</if>
+            <if test="senderUserId != null">#{senderUserId},</if>
+            <if test="sendTime != null">#{sendTime},</if>
+            <if test="readStatus != null">#{readStatus},</if>
+            <if test="readTime != null">#{readTime},</if>
+            <if test="linkPath != null">#{linkPath},</if>
+            <if test="expireTime != null">#{expireTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduUserMessage" parameterType="com.ruoyi.system.domain.education.EduUserMessage">
+        update edu_user_message
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="assignmentId != null">assignment_id = #{assignmentId},</if>
+            <if test="noticeId != null">notice_id = #{noticeId},</if>
+            <if test="bizType != null">biz_type = #{bizType},</if>
+            <if test="messageTitle != null">message_title = #{messageTitle},</if>
+            <if test="messageContent != null">message_content = #{messageContent},</if>
+            <if test="senderUserId != null">sender_user_id = #{senderUserId},</if>
+            <if test="sendTime != null">send_time = #{sendTime},</if>
+            <if test="readStatus != null">read_status = #{readStatus},</if>
+            <if test="readTime != null">read_time = #{readTime},</if>
+            <if test="linkPath != null">link_path = #{linkPath},</if>
+            <if test="expireTime != null">expire_time = #{expireTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where message_id = #{messageId}
+    </update>
+
+    <delete id="deleteEduUserMessageByMessageId" parameterType="Long">
+        delete from edu_user_message where message_id = #{messageId}
+    </delete>
+
+    <delete id="deleteEduUserMessageByMessageIds" parameterType="long">
+        delete from edu_user_message where message_id in
+        <foreach item="messageId" collection="array" open="(" separator="," close=")">
+            #{messageId}
+        </foreach>
+    </delete>
+</mapper>

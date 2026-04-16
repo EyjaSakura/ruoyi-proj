@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.education.EduCourseNoticeMapper">
+
+    <resultMap type="com.ruoyi.system.domain.education.EduCourseNotice" id="EduCourseNoticeResult">
+        <id property="noticeId" column="notice_id" />
+        <result property="courseId" column="course_id" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="noticeType" column="notice_type" />
+        <result property="topFlag" column="top_flag" />
+        <result property="publishUserId" column="publish_user_id" />
+        <result property="publishTime" column="publish_time" />
+        <result property="status" column="status" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectEduCourseNoticeVo">
+        select
+            t.notice_id,
+            t.course_id,
+            t.title,
+            t.content,
+            t.notice_type,
+            t.top_flag,
+            t.publish_user_id,
+            t.publish_time,
+            t.status,
+            t.create_by,
+            t.create_time,
+            t.update_by,
+            t.update_time,
+            t.remark
+        from edu_course_notice t
+    </sql>
+
+    <select id="selectEduCourseNoticeList" parameterType="com.ruoyi.system.domain.education.EduCourseNotice" resultMap="EduCourseNoticeResult">
+        <include refid="selectEduCourseNoticeVo"/>
+        <where>
+            <if test="params.scopeDenyAll != null"> and 1 = 0</if>
+            <if test="courseId != null"> and t.course_id = #{courseId}</if>
+            <if test="title != null and title != ''"> and t.title like concat('%', #{title}, '%')</if>
+            <if test="status != null and status != ''"> and t.status = #{status}</if>
+            <if test="params.scopeDeptId != null">
+                and exists (
+                    select 1
+                    from edu_course c
+                    where c.course_id = t.course_id
+                      and c.dept_id = #{params.scopeDeptId}
+                      and (c.del_flag is null or c.del_flag = '0')
+                )
+            </if>
+            <if test="params.scopeTeacherUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_teacher ct
+                    where ct.course_id = t.course_id
+                      and ct.teacher_user_id = #{params.scopeTeacherUserId}
+                )
+            </if>
+            <if test="params.scopeStudentUserId != null">
+                and exists (
+                    select 1
+                    from edu_course_enrollment e
+                    where e.course_id = t.course_id
+                      and e.student_user_id = #{params.scopeStudentUserId}
+                )
+            </if>
+        </where>
+        order by t.notice_id desc
+    </select>
+
+    <select id="selectEduCourseNoticeByNoticeId" parameterType="Long" resultMap="EduCourseNoticeResult">
+        <include refid="selectEduCourseNoticeVo"/>
+        where t.notice_id = #{noticeId}
+    </select>
+
+    <insert id="insertEduCourseNotice" parameterType="com.ruoyi.system.domain.education.EduCourseNotice" useGeneratedKeys="true" keyProperty="noticeId">
+        insert into edu_course_notice
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="title != null">title,</if>
+            <if test="content != null">content,</if>
+            <if test="noticeType != null">notice_type,</if>
+            <if test="topFlag != null">top_flag,</if>
+            <if test="publishUserId != null">publish_user_id,</if>
+            <if test="publishTime != null">publish_time,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="title != null">#{title},</if>
+            <if test="content != null">#{content},</if>
+            <if test="noticeType != null">#{noticeType},</if>
+            <if test="topFlag != null">#{topFlag},</if>
+            <if test="publishUserId != null">#{publishUserId},</if>
+            <if test="publishTime != null">#{publishTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEduCourseNotice" parameterType="com.ruoyi.system.domain.education.EduCourseNotice">
+        update edu_course_notice
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="noticeType != null">notice_type = #{noticeType},</if>
+            <if test="topFlag != null">top_flag = #{topFlag},</if>
+            <if test="publishUserId != null">publish_user_id = #{publishUserId},</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where notice_id = #{noticeId}
+    </update>
+
+    <delete id="deleteEduCourseNoticeByNoticeId" parameterType="Long">
+        delete from edu_course_notice where notice_id = #{noticeId}
+    </delete>
+
+    <delete id="deleteEduCourseNoticeByNoticeIds" parameterType="long">
+        delete from edu_course_notice where notice_id in
+        <foreach item="noticeId" collection="array" open="(" separator="," close=")">
+            #{noticeId}
+        </foreach>
+    </delete>
+</mapper>
