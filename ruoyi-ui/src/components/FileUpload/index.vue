@@ -153,6 +153,8 @@ export default {
     handleUploadSuccess(res, file) {
       if (res.code === 200) {
         this.uploadList.push({ name: res.fileName, url: res.fileName });
+        // 向上游暴露文件原始信息，供表单自动填充使用
+        this.$emit("on-success", { res, file });
         this.uploadedSuccessfully();
       } else {
         this.number--;

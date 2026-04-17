@@ -104,21 +104,13 @@
           <el-input v-model="form.fileName" placeholder="上传文件后自动填充" disabled />
         </el-form-item>
         <el-form-item label="文件地址" prop="fileUrl">
-          <file-upload v-model="form.fileUrl" :limit="1" :fileSize="100" size-unit="MB" @input="handleFileChange" />
+          <file-upload v-model="form.fileUrl" :limit="1" :fileSize="100" size-unit="MB" @on-success="handleFileSuccess" />
         </el-form-item>
         <el-form-item label="文件后缀" prop="fileSuffix">
           <el-input v-model="form.fileSuffix" placeholder="上传文件后自动填充" disabled />
         </el-form-item>
-        <el-form-item label="文件大小，单位字节" prop="fileSize">
-          <el-input v-model="form.fileSize" placeholder="请输入文件大小，单位字节" />
-        </el-form-item>
-        <el-form-item label="下载次数" prop="downloadCount">
-          <el-input v-model="form.downloadCount" placeholder="请输入下载次数" />
-        </el-form-item>
-        <el-form-item label="上传人" prop="uploadUserId">
-          <el-select v-model="form.uploadUserId" placeholder="请选择上传人" clearable filterable style="width: 100%">
-            <el-option v-for="item in educationOptions.userOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
+        <el-form-item label="文件大小" prop="fileSize">
+          <el-input v-model="form.fileSizeDisplay" placeholder="上传文件后自动填充" disabled />
         </el-form-item>
         <el-form-item label="排序号" prop="orderNum">
           <el-input v-model="form.orderNum" placeholder="请输入排序号" />
@@ -180,10 +172,7 @@ export default {
           { required: true, message: '请输入文件原名称', trigger: 'blur' }
         ],
         fileUrl: [
-          { required: true, message: '请输入文件地址', trigger: 'change' }
-        ],
-        uploadUserId: [
-          { required: true, message: '请选择上传人', trigger: 'change' }
+          { required: true, message: '请上传文件', trigger: 'change' }
         ]
       }
     }
@@ -224,13 +213,31 @@ export default {
         fileUrl: null,
         fileSuffix: '',
         fileSize: 0,
-        downloadCount: 0,
-        uploadUserId: null,
+        uploadUserId: this.$store.state.user.id,
         orderNum: 1,
         status: '0',
         remark: null
       }
       this.resetForm('form')
+    },
+    handleFileSuccess({ res, file }) {
+      // 自动从上传结果中提取文件信息填入表单
+      if (res.originalFilename) {
+        this.form.fileName = res.originalFilename
+        const dotIdx = res.originalFilename.lastIndexOf('.')
+        this.form.fileSuffix = dotIdx >= 0 ? res.originalFilename.substring(dotIdx) : ''
+      }
+      if (file && file.raw && file.raw.size) {
+        const size = file.raw.size
+        if (size >= 1048576) {
+          this.form.fileSizeDisplay = (size / 1048576).toFixed(2) + ' MB'
+        } else if (size >= 1024) {
+          this.form.fileSizeDisplay = (size / 1024).toFixed(2) + ' KB'
+        } else {
+          this.form.fileSizeDisplay = size + ' B'
+        }
+        this.form.fileSize = size  // 实际存字节，后端用
+      }
     },
     handleQuery() {
       this.queryParams.pageNum = 1
