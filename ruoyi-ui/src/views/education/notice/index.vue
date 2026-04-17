@@ -36,7 +36,7 @@
 
     <el-table v-loading="loading" :data="noticeList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canEducationAction('notice', 'edit') || canEducationAction('notice', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column label="公告ID" align="center" prop="noticeId" :show-overflow-tooltip="true" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="课程名称" align="center">
         <template slot-scope="scope">
           <span>{{ getEducationOptionLabel('courseOptions', scope.row.courseId) }}</span>

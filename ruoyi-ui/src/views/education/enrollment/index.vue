@@ -38,7 +38,7 @@
 
     <el-table v-loading="loading" :data="enrollmentList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canEducationAction('enrollment', 'edit') || canEducationAction('enrollment', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column label="选课记录ID" align="center" prop="enrollmentId" :show-overflow-tooltip="true" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="课程名称" align="center">
         <template slot-scope="scope">
           <span>{{ getEducationOptionLabel('courseOptions', scope.row.courseId) }}</span>

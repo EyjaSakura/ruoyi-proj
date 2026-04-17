@@ -42,7 +42,7 @@
 
     <el-table v-loading="loading" :data="studentList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canEducationAction('student', 'edit') || canEducationAction('student', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column label="学生档案ID" align="center" prop="studentId" :show-overflow-tooltip="true" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="学号" align="center" prop="studentNo" :show-overflow-tooltip="true" />
       <el-table-column label="学生姓名" align="center" prop="studentName" :show-overflow-tooltip="true" />
       <el-table-column label="所属院系" align="center" prop="deptName" :show-overflow-tooltip="true" />

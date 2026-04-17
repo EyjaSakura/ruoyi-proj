@@ -37,7 +37,7 @@
 
     <el-table v-loading="loading" :data="teacherList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canEducationAction('teacher', 'edit') || canEducationAction('teacher', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column label="教师档案ID" align="center" prop="teacherId" :show-overflow-tooltip="true" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="教师工号" align="center" prop="teacherNo" :show-overflow-tooltip="true" />
       <el-table-column label="教师姓名" align="center" prop="teacherName" :show-overflow-tooltip="true" />
       <el-table-column label="所属院系" align="center" prop="deptName" :show-overflow-tooltip="true" />

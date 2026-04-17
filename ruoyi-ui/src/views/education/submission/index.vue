@@ -38,7 +38,7 @@
 
     <el-table v-loading="loading" :data="submissionList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canEducationAction('submission', 'edit') || canEducationAction('submission', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column label="作业提交ID" align="center" prop="submissionId" :show-overflow-tooltip="true" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="作业标题" align="center">
         <template slot-scope="scope">
           <span>{{ getEducationOptionLabel('assignmentOptions', scope.row.assignmentId) }}</span>

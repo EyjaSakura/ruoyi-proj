@@ -153,7 +153,12 @@ public class EducationCommonController extends BaseController
         ajax.put("assignmentOptions", toOptions(assignments, EduAssignment::getAssignmentId,
             item -> buildAssociationLabel(item.getTitle(), courseLabelMap.get(item.getCourseId()))));
         ajax.put("chapterOptions", toOptions(chapters, EduCourseChapter::getChapterId,
-            item -> buildAssociationLabel(item.getChapterTitle(), courseLabelMap.get(item.getCourseId()))));
+            item -> buildAssociationLabel(item.getChapterTitle(), courseLabelMap.get(item.getCourseId())),
+            item -> {
+                Map<String, Object> extra = new LinkedHashMap<String, Object>();
+                extra.put("courseId", item.getCourseId());
+                return extra;
+            }));
         ajax.put("noticeOptions", toOptions(notices, EduCourseNotice::getNoticeId,
             item -> buildAssociationLabel(item.getTitle(), courseLabelMap.get(item.getCourseId()))));
         ajax.put("submissionOptions", toOptions(submissions, EduAssignmentSubmission::getSubmissionId,
@@ -234,6 +239,37 @@ public class EducationCommonController extends BaseController
     }
 
     /**
+     * 支持额外字段的 toOptions（如 chapterOptions 需要附加 courseId 供前端按课程过滤）
+     */
+    private <T> List<Map<String, Object>> toOptions(List<T> source, Function<T, Long> valueFunc,
+            Function<T, String> labelFunc, Function<T, Map<String, Object>> extraFunc)
+    {
+        List<Map<String, Object>> options = new ArrayList<Map<String, Object>>();
+        for (T item : source)
+        {
+            Long value = valueFunc.apply(item);
+            String label = labelFunc.apply(item);
+            if (value == null || StringUtils.isEmpty(label))
+            {
+                continue;
+            }
+            Map<String, Object> option = new LinkedHashMap<String, Object>();
+            option.put("value", value);
+            option.put("label", label);
+            if (extraFunc != null)
+            {
+                Map<String, Object> extra = extraFunc.apply(item);
+                if (extra != null)
+                {
+                    option.putAll(extra);
+                }
+            }
+            options.add(option);
+        }
+        return options;
+    }
+
+    /**
      * 学期选项：额外附加 startDate，用于前端自动填充选课时间
      */
     private List<Map<String, Object>> toTermOptions(List<EduTerm> terms)
@@ -259,7 +295,8 @@ public class EducationCommonController extends BaseController
 
     private String buildCourseLabel(EduCourse course)
     {
-        return buildNameWithCode(course.getCourseName(), course.getCourseCode());
+        // 用课序号(classNo)而非课程编码(courseCode)，便于区分同名课程的不同课头
+        return buildNameWithCode(course.getCourseName(), course.getClassNo());
     }
 
     private String buildUserLabel(SysUser user)

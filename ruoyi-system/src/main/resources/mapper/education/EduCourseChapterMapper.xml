@@ -75,7 +75,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 )
             </if>
         </where>
-        order by t.chapter_id desc
+        order by t.order_num asc, t.chapter_id asc
     </select>
 
     <select id="selectEduCourseChapterByChapterId" parameterType="Long" resultMap="EduCourseChapterResult">

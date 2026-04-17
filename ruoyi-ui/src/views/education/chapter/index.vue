@@ -36,7 +36,7 @@
 
     <el-table v-loading="loading" :data="chapterList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canEducationAction('chapter', 'edit') || canEducationAction('chapter', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column label="章节ID" align="center" prop="chapterId" :show-overflow-tooltip="true" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="课程名称" align="center">
         <template slot-scope="scope">
           <span>{{ getEducationOptionLabel('courseOptions', scope.row.courseId) }}</span>
@@ -48,8 +48,6 @@
         </template>
       </el-table-column>
       <el-table-column label="章节标题" align="center" prop="chapterTitle" :show-overflow-tooltip="true" />
-      <el-table-column label="章节类型" align="center" prop="chapterType" :show-overflow-tooltip="true" />
-      <el-table-column label="排序号" align="center" prop="orderNum" :show-overflow-tooltip="true" />
       <el-table-column label="建议学习时长" align="center" prop="durationMinutes" :show-overflow-tooltip="true" />
       <el-table-column label="状态" align="center" prop="status">
         <template slot-scope="scope">
@@ -75,23 +73,18 @@
         </el-form-item>
         <el-form-item label="父章节" prop="parentId">
           <el-select v-model="form.parentId" placeholder="请选择父章节" clearable filterable style="width: 100%">
-            <el-option label="顶级章节" :value="0" />
+            <el-option label="顶级章节（章）" :value="0" />
             <el-option
               v-for="item in getParentChapterOptions(form.courseId, form.chapterId)"
               :key="item.value"
-              :label="item.label"
+              :label="item.label + '（节）'"
               :value="item.value"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="祖级列表" prop="ancestors">
-          <el-input v-model="form.ancestors" placeholder="请输入祖级列表" />
-        </el-form-item>
+        <!-- ancestors 由后端自动计算，无需前端维护 -->
         <el-form-item label="章节标题" prop="chapterTitle">
           <el-input v-model="form.chapterTitle" placeholder="请输入章节标题" />
-        </el-form-item>
-        <el-form-item label="章节类型" prop="chapterType">
-          <el-input v-model="form.chapterType" placeholder="请输入章节类型" />
         </el-form-item>
         <el-form-item label="章节说明" prop="chapterDesc">
           <el-input v-model="form.chapterDesc" type="textarea" :rows="3" placeholder="请输入章节说明" />
@@ -170,7 +163,8 @@ export default {
         if (!courseId) {
           return true
         }
-        return item.label.indexOf(this.getEducationOptionLabel('courseOptions', courseId)) > -1
+        // 用 courseId 精确匹配，而非字符串包含
+        return item.courseId != null && String(item.courseId) === String(courseId)
       })
     },
     formatParentChapterLabel(parentId) {
@@ -203,7 +197,7 @@ export default {
         chapterType: '1',
         chapterDesc: '',
         orderNum: 1,
-        durationMinutes: 0,
+        durationMinutes: 120,
         status: '0',
         remark: null
       }

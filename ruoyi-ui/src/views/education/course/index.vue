@@ -40,6 +40,7 @@
 
     <el-table v-loading="loading" :data="courseList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canManageCourse" type="selection" width="55" align="center" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="课程号" align="center" prop="courseCode" :show-overflow-tooltip="true" />
       <el-table-column label="课序号" align="center" prop="classNo" width="80" />
       <el-table-column label="课程名称" align="center" prop="courseName" :show-overflow-tooltip="true" />
@@ -48,7 +49,7 @@
           <span>{{ getEducationOptionLabel('termOptions', scope.row.termId) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="开课院系" align="center">
+      <el-table-column v-if="!isCollegeAdmin" label="开课院系" align="center">
         <template slot-scope="scope">
           <span>{{ getEducationOptionLabel('deptOptions', scope.row.deptId) }}</span>
         </template>

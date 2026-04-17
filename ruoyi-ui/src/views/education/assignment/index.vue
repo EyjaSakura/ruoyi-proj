@@ -35,7 +35,7 @@
 
     <el-table v-loading="loading" :data="assignmentList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canEducationAction('assignment', 'edit') || canEducationAction('assignment', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column label="作业ID" align="center" prop="assignmentId" :show-overflow-tooltip="true" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="课程名称" align="center">
         <template slot-scope="scope">
           <span>{{ getEducationOptionLabel('courseOptions', scope.row.courseId) }}</span>
@@ -48,7 +48,11 @@
         </template>
       </el-table-column>
       <el-table-column label="总分" align="center" prop="totalScore" :show-overflow-tooltip="true" />
-      <el-table-column label="最大提交次数，0表示不限" align="center" prop="submitLimit" :show-overflow-tooltip="true" />
+      <el-table-column label="最大提交次数" align="center" prop="submitLimit">
+        <template slot-scope="scope">
+          <span>{{ scope.row.submitLimit === 0 ? '不限' : scope.row.submitLimit + '次' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="截止时间" align="center" prop="deadlineTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.deadlineTime) }}</span>

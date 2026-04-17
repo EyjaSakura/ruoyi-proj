@@ -36,7 +36,7 @@
 
     <el-table v-loading="loading" :data="messageList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canEducationAction('message', 'edit') || canEducationAction('message', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column label="消息ID" align="center" prop="messageId" :show-overflow-tooltip="true" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="接收用户" align="center">
         <template slot-scope="scope">
           <span>{{ getEducationOptionLabel('userOptions', scope.row.userId) }}</span>

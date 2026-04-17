@@ -34,7 +34,7 @@
 
     <el-table v-loading="loading" :data="termList" @selection-change="handleSelectionChange">
       <el-table-column v-if="canEducationAction('term', 'edit') || canEducationAction('term', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column label="学期ID" align="center" prop="termId" :show-overflow-tooltip="true" />
+      <el-table-column type="index" label="#" width="60" align="center" />
       <el-table-column label="学期编码" align="center" prop="termCode" :show-overflow-tooltip="true" />
       <el-table-column label="学期名称" align="center" prop="termName" :show-overflow-tooltip="true" />
       <el-table-column label="学年" align="center" prop="schoolYear" :show-overflow-tooltip="true" />
