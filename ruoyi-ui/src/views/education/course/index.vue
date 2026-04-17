@@ -28,9 +28,7 @@
       <el-col :span="1.5">
         <el-button v-if="canCreateCourse" type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd">新增</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button v-if="canManageCourse" type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate">修改</el-button>
-      </el-col>
+
       <el-col :span="1.5">
         <el-button v-if="canManageCourse" type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple" @click="handleDelete">删除</el-button>
       </el-col>
@@ -84,7 +82,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="开课院系" prop="deptId">
+            <el-form-item v-if="!isCollegeAdmin" label="开课院系" prop="deptId">
               <treeselect v-model="form.deptId" :options="educationOptions.deptOptions" placeholder="请选择开课院系" />
             </el-form-item>
           </el-col>
@@ -244,6 +242,10 @@ export default {
     isSystemAdmin() {
       return this.hasEducationRole('admin')
     },
+    /** 是否为学院管理员（新增时隐藏院系选择，自动填入当前院系） */
+    isCollegeAdmin() {
+      return this.hasEducationRole('master')
+    },
     canCreateCourse() {
       return this.canEducationAction('course', 'add')
     },
@@ -310,12 +312,46 @@ export default {
         return
       }
       this.reset()
-      const deptOptions = this.educationOptions.deptOptions || []
-      if (deptOptions.length === 1 && (!deptOptions[0].children || deptOptions[0].children.length === 0)) {
-        this.form.deptId = deptOptions[0].id
+      // 学院管理员：自动填入当前院系
+      if (this.isCollegeAdmin) {
+        this.form.deptId = this.$store.state.user.deptId || null
       }
+      // 根据系统时间预填当前所属学期
+      this.autoFillCurrentTerm()
       this.open = true
       this.title = '新增课程管理'
+    },
+    /** 根据当前日期自动匹配学期并预填 */
+    autoFillCurrentTerm() {
+      const now = new Date()
+      const termOptions = this.educationOptions.termOptions || []
+      // 优先找包含当前日期的学期
+      let matched = null
+      for (const t of termOptions) {
+        if (t.startDate && t.endDate) {
+          const start = new Date(t.startDate)
+          const end = new Date(t.endDate)
+          if (now >= start && now <= end) {
+            matched = t
+            break
+          }
+        }
+      }
+      // 找不到则取最近一个未来学期（startDate最近的）
+      if (!matched) {
+        const futurTerms = termOptions.filter(t => t.startDate && new Date(t.startDate) > now)
+        if (futurTerms.length > 0) {
+          matched = futurTerms.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))[0]
+        }
+      }
+      // 仍找不到则取最后一个学期
+      if (!matched && termOptions.length > 0) {
+        matched = termOptions[termOptions.length - 1]
+      }
+      if (matched) {
+        this.form.termId = matched.value
+        this.fillCourseSelectTimes(matched.value)
+      }
     },
     handleUpdate(row) {
       if (!this.canManageCourse) {

@@ -26,9 +26,7 @@
       <el-col :span="1.5">
         <el-button v-if="canEducationAction('submission', 'add')" v-hasPermi="['education:submission:list']" type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd">新增</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button v-if="canEducationAction('submission', 'edit')" v-hasPermi="['education:submission:list']" type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate">修改</el-button>
-      </el-col>
+
       <el-col :span="1.5">
         <el-button v-if="canEducationAction('submission', 'remove')" v-hasPermi="['education:submission:list']" type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple" @click="handleDelete">删除</el-button>
       </el-col>

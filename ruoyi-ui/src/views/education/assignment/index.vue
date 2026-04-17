@@ -25,9 +25,6 @@
         <el-button v-if="canEducationAction('assignment', 'add')" v-hasPermi="['education:assignment:list']" type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-if="canEducationAction('assignment', 'edit')" v-hasPermi="['education:assignment:list']" type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate">修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button v-if="canEducationAction('assignment', 'remove')" v-hasPermi="['education:assignment:list']" type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple" @click="handleDelete">删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -93,12 +90,12 @@
         <el-form-item label="总分" prop="totalScore">
           <el-input v-model="form.totalScore" placeholder="请输入总分" />
         </el-form-item>
-        <el-form-item label="最大提交次数，0表示不限" prop="submitLimit">
-          <el-input v-model="form.submitLimit" placeholder="请输入最大提交次数，0表示不限" />
-        </el-form-item>
-        <el-form-item label="是否允许重交" prop="allowResubmit">
-          <el-select v-model="form.allowResubmit" placeholder="请选择是否允许重交" clearable style="width: 100%">
-            <el-option v-for="dict in dict.type.sys_yes_no" :key="dict.value" :label="dict.label" :value="dict.value" />
+        <el-form-item label="最大提交次数" prop="submitLimit">
+          <el-select v-model="form.submitLimit" placeholder="请选择最大提交次数" clearable style="width: 100%">
+            <el-option :value="1" label="1次" />
+            <el-option :value="2" label="2次" />
+            <el-option :value="3" label="3次" />
+            <el-option :value="0" label="不限" />
           </el-select>
         </el-form-item>
         <el-form-item label="截止时间" prop="deadlineTime">
@@ -109,7 +106,8 @@
             <el-option v-for="dict in dict.type.edu_assignment_publish_status" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="发布教师" prop="publishUserId">
+        <!-- 发布教师：教师角色时自动获取当前用户，隐藏该字段 -->
+        <el-form-item v-if="!isTeacherRole" label="发布教师" prop="publishUserId">
           <el-select v-model="form.publishUserId" placeholder="请选择发布教师" clearable filterable style="width: 100%">
             <el-option v-for="item in educationOptions.teacherUserOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
@@ -170,6 +168,34 @@ export default {
       }
     }
   },
+  computed: {
+    /** 是否为教师角色（教师新增时隐藏发布教师字段，自动填入） */
+    isTeacherRole() {
+      return this.hasEducationRole('teacher')
+    }
+  },
+  watch: {
+    'form.publishTime'(newVal) {
+      // 修改发布时间时，截止时间保持当前间隔（默认7天）自动联动
+      if (!newVal || !this.open) return
+      const publishDate = new Date(newVal)
+      if (isNaN(publishDate.getTime())) return
+      const intervalDays = this._timeIntervalDays != null ? this._timeIntervalDays : 7
+      const newDeadline = new Date(publishDate)
+      newDeadline.setDate(newDeadline.getDate() + intervalDays)
+      const pad = n => String(n).padStart(2, '0')
+      this.form.deadlineTime = `${newDeadline.getFullYear()}-${pad(newDeadline.getMonth() + 1)}-${pad(newDeadline.getDate())} ${pad(newDeadline.getHours())}:${pad(newDeadline.getMinutes())}:${pad(newDeadline.getSeconds())}`
+    },
+    'form.deadlineTime'(newVal) {
+      // 修改截止时间时，更新记录的间隔天数
+      if (!newVal || !this.form.publishTime || !this.open) return
+      const publishDate = new Date(this.form.publishTime)
+      const deadlineDate = new Date(newVal)
+      if (isNaN(publishDate.getTime()) || isNaN(deadlineDate.getTime())) return
+      const diffMs = deadlineDate.getTime() - publishDate.getTime()
+      this._timeIntervalDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+    }
+  },
   created() {
     this.loadEducationOptions()
     this.getList()
@@ -223,6 +249,22 @@ export default {
     },
     handleAdd() {
       this.reset()
+      this._timeIntervalDays = 7
+      // 发布时间默认：明天 0 点
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      tomorrow.setHours(0, 0, 0, 0)
+      const pad = n => String(n).padStart(2, '0')
+      const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+      this.form.publishTime = fmt(tomorrow)
+      // 截止时间默认：发布时间 + 7 天
+      const deadline = new Date(tomorrow)
+      deadline.setDate(deadline.getDate() + 7)
+      this.form.deadlineTime = fmt(deadline)
+      // 教师角色：自动填入当前用户 userId 作为发布教师
+      if (this.isTeacherRole) {
+        this.form.publishUserId = this.$store.state.user.userId || null
+      }
       this.open = true
       this.title = '新增作业管理'
     },

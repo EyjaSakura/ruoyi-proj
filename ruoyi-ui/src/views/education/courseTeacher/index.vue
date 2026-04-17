@@ -26,9 +26,7 @@
       <el-col :span="1.5">
         <el-button v-if="canEducationAction('courseTeacher', 'add')" v-hasPermi="['education:courseTeacher:list']" type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd">新增</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button v-if="canEducationAction('courseTeacher', 'edit')" v-hasPermi="['education:courseTeacher:list']" type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate">修改</el-button>
-      </el-col>
+
       <el-col :span="1.5">
         <el-button v-if="canEducationAction('courseTeacher', 'remove')" v-hasPermi="['education:courseTeacher:list']" type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple" @click="handleDelete">删除</el-button>
       </el-col>
@@ -81,7 +79,7 @@
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="课程名称" prop="courseId">
           <el-select v-model="form.courseId" placeholder="输入课程名称搜索" filterable remote :remote-method="searchCourse" :loading="courseSearchLoading" style="width: 100%">
-            <el-option v-for="item in courseSearchResults" :key="item.courseId" :label="item.courseName" :value="item.courseId" />
+            <el-option v-for="item in courseSearchResults" :key="item.courseId" :label="item.classNo ? item.courseName + '(' + item.classNo + ')' : item.courseName" :value="item.courseId" />
           </el-select>
         </el-form-item>
         <el-form-item label="授课教师" prop="teacherUserId">
@@ -213,18 +211,14 @@ export default {
       this.reset()
       this.open = true
       this.title = '新增授课安排'
-      // 清空搜索结果
-      this.courseSearchResults = []
-      this.teacherSearchResults = []
+      // 打开时自动加载全量选项（空搜索）
+      this.searchCourse('')
+      this.searchTeacher('')
     },
     // 搜索课程（远程搜索）
     searchCourse(query) {
-      if (!query) {
-        this.courseSearchResults = []
-        return
-      }
       this.courseSearchLoading = true
-      searchCourse(query).then(response => {
+      searchCourse(query || '').then(response => {
         this.courseSearchResults = response.data || []
         this.courseSearchLoading = false
       }).catch(() => {
@@ -233,12 +227,8 @@ export default {
     },
     // 搜索教师（远程搜索）
     searchTeacher(query) {
-      if (!query) {
-        this.teacherSearchResults = []
-        return
-      }
       this.teacherSearchLoading = true
-      searchTeacher(query).then(response => {
+      searchTeacher(query || '').then(response => {
         this.teacherSearchResults = response.data || []
         this.teacherSearchLoading = false
       }).catch(() => {
@@ -248,6 +238,9 @@ export default {
     handleUpdate(row) {
       this.reset()
       const id = row.courseTeacherId || this.ids[0]
+      // 先加载全量选项，再加载表单数据
+      this.searchCourse('')
+      this.searchTeacher('')
       getCourseTeacher(id).then(response => {
         this.form = response.data
         this.open = true

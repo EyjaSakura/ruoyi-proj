@@ -74,6 +74,11 @@ public class EduTeacherProfileController extends BaseController
     public AjaxResult add(@RequestBody EduTeacherProfile teacher)
     {
         educationPermission.checkModuleAction("teacher", EducationPermissionService.ACTION_ADD);
+        // 学院管理员新增时，强制使用当前登录用户的院系ID，防止前端传入null或伪造值
+        if (educationPermission.isMaster())
+        {
+            teacher.setDeptId(educationPermission.getCurrentDeptId());
+        }
         educationPermission.checkDeptOwnership(teacher.getDeptId());
         teacher.setCreateBy(getUsername());
         return toAjax(teacherService.insertEduTeacherProfile(teacher));
