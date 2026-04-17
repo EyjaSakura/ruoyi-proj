@@ -34,35 +34,31 @@
       <right-toolbar :show-search.sync="showSearch" @queryTable="getList" />
     </el-row>
 
-    <el-table v-loading="loading" :data="chapterList" @selection-change="handleSelectionChange">
-      <el-table-column v-if="canEducationAction('chapter', 'edit') || canEducationAction('chapter', 'remove')" type="selection" width="55" align="center" />
-      <el-table-column type="index" label="#" width="60" align="center" />
-      <el-table-column label="课程名称" align="center">
+    <el-table v-loading="loading" :data="chapterList" row-key="chapterId" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
+      <el-table-column label="章节标题" align="left" prop="chapterTitle" :show-overflow-tooltip="true" min-width="200">
         <template slot-scope="scope">
-          <span>{{ getEducationOptionLabel('courseOptions', scope.row.courseId) }}</span>
+          <span>{{ scope.row.chapterTitle }}</span>
+          <span style="margin-left: 8px; color: #999; font-size: 12px">
+            ({{ scope.row.chapterType === '1' ? '章' : '节' }})
+          </span>
+          <span style="margin-left: 8px; color: #999; font-size: 12px">
+            {{ scope.row.durationMinutes }}分钟
+          </span>
+          <span style="margin-left: 8px">
+            <el-tag v-if="scope.row.status === '0'" size="mini" type="success">正常</el-tag>
+            <el-tag v-else size="mini" type="danger">停用</el-tag>
+          </span>
         </template>
       </el-table-column>
-      <el-table-column label="父章节" align="center">
-        <template slot-scope="scope">
-          <span>{{ formatParentChapterLabel(scope.row.parentId) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="章节标题" align="center" prop="chapterTitle" :show-overflow-tooltip="true" />
-      <el-table-column label="建议学习时长" align="center" prop="durationMinutes" :show-overflow-tooltip="true" />
-      <el-table-column label="状态" align="center" prop="status">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status" />
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="180">
+      <el-table-column label="章节说明" align="center" prop="chapterDesc" :show-overflow-tooltip="true" min-width="200" />
+      <el-table-column label="排序号" align="center" prop="orderNum" width="80" />
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="140">
         <template slot-scope="scope">
           <el-button v-if="canEducationAction('chapter', 'edit')" v-hasPermi="['education:chapter:list']" size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
           <el-button v-if="canEducationAction('chapter', 'remove')" v-hasPermi="['education:chapter:list']" size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-
-    <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum" :limit.sync="queryParams.pageSize" @pagination="getList" />
 
     <el-dialog :title="title" :visible.sync="open" width="720px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
@@ -124,17 +120,11 @@ export default {
   data() {
     return {
       loading: true,
-      ids: [],
-      single: true,
-      multiple: true,
       showSearch: true,
-      total: 0,
       chapterList: [],
       title: '',
       open: false,
       queryParams: {
-        pageNum: 1,
-        pageSize: 10,
         courseId: null,
         chapterTitle: null,
         status: null
@@ -163,21 +153,30 @@ export default {
         if (!courseId) {
           return true
         }
-        // 用 courseId 精确匹配，而非字符串包含
         return item.courseId != null && String(item.courseId) === String(courseId)
       })
     },
-    formatParentChapterLabel(parentId) {
-      if (!parentId || Number(parentId) === 0) {
-        return '顶级章节'
-      }
-      return this.getEducationOptionLabel('chapterOptions', parentId)
+    buildChapterTree(rows) {
+      if (!rows || rows.length === 0) return []
+      const map = {}
+      const roots = []
+      rows.forEach(row => {
+        map[row.chapterId] = { ...row, children: [] }
+      })
+      rows.forEach(row => {
+        const node = map[row.chapterId]
+        if (row.parentId === 0 || !map[row.parentId]) {
+          roots.push(node)
+        } else {
+          map[row.parentId].children.push(node)
+        }
+      })
+      return roots
     },
     getList() {
       this.loading = true
       listChapter(this.queryParams).then(response => {
-        this.chapterList = response.rows
-        this.total = response.total
+        this.chapterList = this.buildChapterTree(response.rows)
         this.loading = false
       }).catch(() => {
         this.loading = false
@@ -204,18 +203,12 @@ export default {
       this.resetForm('form')
     },
     handleQuery() {
-      this.queryParams.pageNum = 1
       this.getList()
     },
     resetQuery() {
       this.resetForm('queryForm')
       this.queryParams.courseId = null
       this.handleQuery()
-    },
-    handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.chapterId)
-      this.single = selection.length !== 1
-      this.multiple = selection.length === 0
     },
     handleAdd() {
       this.reset()
