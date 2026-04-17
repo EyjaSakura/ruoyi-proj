@@ -101,13 +101,13 @@
           </el-select>
         </el-form-item>
         <el-form-item label="文件原名称" prop="fileName">
-          <el-input v-model="form.fileName" placeholder="请输入文件原名称" />
+          <el-input v-model="form.fileName" placeholder="上传文件后自动填充" disabled />
         </el-form-item>
         <el-form-item label="文件地址" prop="fileUrl">
-          <file-upload v-model="form.fileUrl" />
+          <file-upload v-model="form.fileUrl" :limit="1" :fileSize="100" size-unit="MB" @input="handleFileChange" />
         </el-form-item>
         <el-form-item label="文件后缀" prop="fileSuffix">
-          <el-input v-model="form.fileSuffix" placeholder="请输入文件后缀" />
+          <el-input v-model="form.fileSuffix" placeholder="上传文件后自动填充" disabled />
         </el-form-item>
         <el-form-item label="文件大小，单位字节" prop="fileSize">
           <el-input v-model="form.fileSize" placeholder="请输入文件大小，单位字节" />

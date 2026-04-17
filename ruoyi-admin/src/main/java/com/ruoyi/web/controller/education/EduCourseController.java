@@ -67,6 +67,11 @@ public class EduCourseController extends BaseController
     public AjaxResult add(@RequestBody EduCourse course)
     {
         educationPermission.checkModuleAction("course", EducationPermissionService.ACTION_ADD);
+        // 学院管理员（deptId 由前端隐藏，null 时自动取当前用户所属学院）
+        if (course.getDeptId() == null && !educationPermission.isAdmin())
+        {
+            course.setDeptId(educationPermission.getCurrentDeptId());
+        }
         educationPermission.checkDeptOwnership(course.getDeptId());
         if (!courseService.checkClassNoUnique(course))
         {

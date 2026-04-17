@@ -157,6 +157,7 @@ public class EducationCommonController extends BaseController
             item -> {
                 Map<String, Object> extra = new LinkedHashMap<String, Object>();
                 extra.put("courseId", item.getCourseId());
+                extra.put("chapterType", item.getChapterType());
                 return extra;
             }));
         ajax.put("noticeOptions", toOptions(notices, EduCourseNotice::getNoticeId,

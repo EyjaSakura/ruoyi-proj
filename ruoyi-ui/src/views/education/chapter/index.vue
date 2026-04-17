@@ -24,9 +24,8 @@
       <el-col :span="1.5">
         <el-button v-if="canEducationAction('chapter', 'add')" v-hasPermi="['education:chapter:list']" type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd">新增</el-button>
       </el-col>
-
       <el-col :span="1.5">
-        <el-button v-if="canEducationAction('chapter', 'remove')" v-hasPermi="['education:chapter:list']" type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple" @click="handleDelete">删除</el-button>
+        <el-button type="info" plain icon="el-icon-sort" size="mini" @click="toggleExpandAll">展开/折叠</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-if="canEducationAction('chapter', 'export')" v-hasPermi="['education:chapter:list']" type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
@@ -34,28 +33,31 @@
       <right-toolbar :show-search.sync="showSearch" @queryTable="getList" />
     </el-row>
 
-    <el-table v-loading="loading" :data="chapterList" row-key="chapterId" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
-      <el-table-column label="章节标题" align="left" prop="chapterTitle" :show-overflow-tooltip="true" min-width="200">
+    <el-table v-if="refreshTable" v-loading="loading" :data="chapterList" row-key="chapterId" :default-expand-all="isExpandAll" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
+      <el-table-column prop="chapterTitle" label="章节" min-width="300">
         <template slot-scope="scope">
-          <span>{{ scope.row.chapterTitle }}</span>
-          <span style="margin-left: 8px; color: #999; font-size: 12px">
-            ({{ scope.row.chapterType === '1' ? '章' : '节' }})
-          </span>
-          <span style="margin-left: 8px; color: #999; font-size: 12px">
-            {{ scope.row.durationMinutes }}分钟
-          </span>
-          <span style="margin-left: 8px">
-            <el-tag v-if="scope.row.status === '0'" size="mini" type="success">正常</el-tag>
-            <el-tag v-else size="mini" type="danger">停用</el-tag>
+          <!-- 虚拟课程根节点：chapterType='0'，只显示课程名 -->
+          <span v-if="scope.row._isVirtualRoot">{{ scope.row.chapterTitle }}</span>
+          <!-- 真实章节节点 -->
+          <span v-else>{{ scope.row.chapterTitle }}
+            <span style="margin-left: 8px; color: #999; font-size: 12px">
+              ({{ scope.row.chapterType == 1 ? '章' : '节' }})
+            </span>
+            <span v-if="scope.row.durationMinutes" style="margin-left: 8px; color: #999; font-size: 12px">{{ scope.row.durationMinutes }}分钟</span>
+            <span style="margin-left: 8px">
+              <el-tag v-if="scope.row.status == '0' || scope.row.status == 0" size="mini" type="success">正常</el-tag>
+              <el-tag v-else size="mini" type="danger">停用</el-tag>
+            </span>
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="章节说明" align="center" prop="chapterDesc" :show-overflow-tooltip="true" min-width="200" />
-      <el-table-column label="排序号" align="center" prop="orderNum" width="80" />
+      <el-table-column prop="chapterDesc" label="章节说明" :show-overflow-tooltip="true" min-width="200" />
+      <el-table-column prop="orderNum" label="排序" width="80" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="140">
         <template slot-scope="scope">
-          <el-button v-if="canEducationAction('chapter', 'edit')" v-hasPermi="['education:chapter:list']" size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
-          <el-button v-if="canEducationAction('chapter', 'remove')" v-hasPermi="['education:chapter:list']" size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
+          <!-- 虚拟课程根节点不可操作 -->
+          <el-button v-if="!scope.row._isVirtualRoot && canEducationAction('chapter', 'edit')" v-hasPermi="['education:chapter:list']" size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
+          <el-button v-if="!scope.row._isVirtualRoot && canEducationAction('chapter', 'remove')" v-hasPermi="['education:chapter:list']" size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -63,17 +65,22 @@
     <el-dialog :title="title" :visible.sync="open" width="720px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="课程名称" prop="courseId">
-          <el-select v-model="form.courseId" placeholder="请选择课程名称" clearable filterable style="width: 100%">
+          <el-select v-model="form.courseId" placeholder="请选择课程名称" clearable filterable style="width: 100%" @change="onCourseChange">
             <el-option v-for="item in educationOptions.courseOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="父章节" prop="parentId">
+        <el-form-item label="章节类型" prop="parentChapterType">
+          <el-radio-group v-model="form.parentChapterType" size="small">
+            <el-radio-button label="top">新建顶级章节（章）</el-radio-button>
+            <el-radio-button label="chapter">作为顶级章节的子节（节）</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="form.parentChapterType !== 'top'" label="父章节" prop="parentId">
           <el-select v-model="form.parentId" placeholder="请选择父章节" clearable filterable style="width: 100%">
-            <el-option label="顶级章节（章）" :value="0" />
             <el-option
-              v-for="item in getParentChapterOptions(form.courseId, form.chapterId)"
+              v-for="item in getParentChapterOptions(form.courseId, form.chapterId, form.parentChapterType)"
               :key="item.value"
-              :label="item.label + '（节）'"
+              :label="item.label"
               :value="item.value"
             />
           </el-select>
@@ -124,6 +131,8 @@ export default {
       chapterList: [],
       title: '',
       open: false,
+      isExpandAll: true,
+      refreshTable: true,
       queryParams: {
         courseId: null,
         chapterTitle: null,
@@ -145,33 +154,59 @@ export default {
     this.getList()
   },
   methods: {
-    getParentChapterOptions(courseId, excludeId) {
-      return (this.educationOptions.chapterOptions || []).filter(item => {
-        if (excludeId != null && String(item.value) === String(excludeId)) {
-          return false
-        }
-        if (!courseId) {
-          return true
-        }
-        return item.courseId != null && String(item.courseId) === String(courseId)
+    getCourseLabel(courseId) {
+      return this.getEducationOptionLabel('courseOptions', courseId)
+    },
+    getParentChapterOptions(courseId, excludeId, parentChapterType) {
+      const all = this.educationOptions.chapterOptions || []
+      return all.filter(item => {
+        if (excludeId != null && String(item.value) === String(excludeId)) return false
+        if (!courseId) return false
+        if (String(item.courseId) !== String(courseId)) return false
+        // 'chapter': 只能以章(type=1)为父
+        if (parentChapterType === 'chapter' && String(item.chapterType) !== '1') return false
+        return true
       })
+    },
+    onCourseChange() {
+      // 切换课程后重置章节类型和父节点
+      this.form.parentChapterType = 'top'
+      this.form.parentId = 0
     },
     buildChapterTree(rows) {
       if (!rows || rows.length === 0) return []
       const map = {}
-      const roots = []
       rows.forEach(row => {
         map[row.chapterId] = { ...row, children: [] }
       })
+      const courseRoots = []
+      const courseMap = {}
       rows.forEach(row => {
         const node = map[row.chapterId]
-        if (row.parentId === 0 || !map[row.parentId]) {
-          roots.push(node)
+        const parentNode = map[row.parentId]
+        if (row.parentId === 0 || !parentNode) {
+          const courseId = row.courseId
+          if (!courseMap[courseId]) {
+            // 优先从 courseOptions 查找，找不到时用 courseId兜底
+            let courseName = this.getCourseLabel(courseId)
+            if (!courseName) courseName = '课程(ID:' + courseId + ')'
+            courseMap[courseId] = {
+              chapterId: -courseId,
+              chapterTitle: courseName,
+              courseId: courseId,
+              chapterType: '0',
+              children: [],
+              _isVirtualRoot: true,
+              status: '0'
+            }
+            courseRoots.push(courseMap[courseId])
+          }
+          courseMap[courseId].children.push(node)
         } else {
-          map[row.parentId].children.push(node)
+          parentNode.children.push(node)
         }
       })
-      return roots
+      return courseRoots
     },
     getList() {
       this.loading = true
@@ -182,6 +217,13 @@ export default {
         this.loading = false
       })
     },
+    toggleExpandAll() {
+      this.refreshTable = false
+      this.isExpandAll = !this.isExpandAll
+      this.$nextTick(() => {
+        this.refreshTable = true
+      })
+    },
     cancel() {
       this.open = false
       this.reset()
@@ -190,6 +232,7 @@ export default {
       this.form = {
         chapterId: null,
         courseId: null,
+        parentChapterType: 'top',
         parentId: 0,
         ancestors: '',
         chapterTitle: null,
@@ -217,9 +260,17 @@ export default {
     },
     handleUpdate(row) {
       this.reset()
-      const id = row.chapterId || this.ids[0]
-      getChapter(id).then(response => {
+      getChapter(row.chapterId).then(response => {
         this.form = response.data
+        // 根据 chapterType 反推 parentChapterType（章=1 → top；节=2 → chapter）
+        const ct = String(this.form.chapterType)
+        if (ct === '1') {
+          this.form.parentChapterType = 'top'
+          this.form.parentId = 0
+        } else {
+          // 节(type=2)或其他 → 作为子节
+          this.form.parentChapterType = 'chapter'
+        }
         this.open = true
         this.title = '修改课程章节'
       })
@@ -227,6 +278,15 @@ export default {
     submitForm() {
       this.$refs.form.validate(valid => {
         if (!valid) return
+        // 根据 parentChapterType 计算 chapterType 和 parentId
+        if (this.form.parentChapterType === 'top') {
+          this.form.chapterType = '1'
+          this.form.parentId = 0
+        } else {
+          // 'chapter': 作为顶级章节的子节
+          this.form.chapterType = '2'
+          this.form.parentId = this.form.parentId || 0
+        }
         if (this.form.chapterId != null) {
           updateChapter(this.form).then(() => {
             this.$modal.msgSuccess('修改成功')
@@ -243,9 +303,8 @@ export default {
       })
     },
     handleDelete(row) {
-      const ids = row.chapterId || this.ids
-      this.$modal.confirm('是否确认删除课程章节编号为"' + ids + '"的数据项？').then(() => {
-        return delChapter(ids)
+      this.$modal.confirm('是否确认删除课程章节编号为"' + row.chapterId + '"的数据项？').then(() => {
+        return delChapter(row.chapterId)
       }).then(() => {
         this.getList()
         this.$modal.msgSuccess('删除成功')
