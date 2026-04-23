@@ -10,11 +10,6 @@
       <el-form-item label="所属院系" prop="deptId">
         <treeselect v-model="queryParams.deptId" :options="educationOptions.deptOptions" placeholder="请选择所属院系" style="width: 220px" />
       </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable style="width: 220px">
-          <el-option v-for="dict in dict.type.sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
-        </el-select>
-      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -43,11 +38,6 @@
       <el-table-column label="所属院系" align="center" prop="deptName" :show-overflow-tooltip="true" />
       <el-table-column label="职称" align="center" prop="jobTitle" :show-overflow-tooltip="true" />
       <el-table-column label="联系电话" align="center" prop="phone" :show-overflow-tooltip="true" />
-      <el-table-column label="状态" align="center" prop="status">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status" />
-        </template>
-      </el-table-column>
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime) }}</span>
@@ -96,11 +86,6 @@
         </el-form-item>
         <el-form-item label="教师简介" prop="intro">
           <el-input v-model="form.intro" type="textarea" :rows="3" placeholder="请输入教师简介" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="form.status" placeholder="请选择状态" clearable style="width: 100%">
-            <el-option v-for="dict in dict.type.sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
-          </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />

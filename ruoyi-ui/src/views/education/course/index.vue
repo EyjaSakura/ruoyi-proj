@@ -10,11 +10,6 @@
       <el-form-item label="课程名称" prop="courseName">
         <el-input v-model="queryParams.courseName" placeholder="请输入课程名称" clearable style="width: 220px" @keyup.enter.native="handleQuery" />
       </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable style="width: 220px">
-          <el-option v-for="dict in dict.type.edu_course_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-        </el-select>
-      </el-form-item>
       <el-form-item v-if="isSystemAdmin" label="所属学院" prop="deptId">
         <treeselect v-model="queryParams.deptId" :options="educationOptions.deptOptions" placeholder="请选择所属学院" clearable style="width: 220px" />
       </el-form-item>
@@ -57,11 +52,6 @@
       <el-table-column label="学分" align="center" prop="credit" :show-overflow-tooltip="true" />
       <el-table-column label="总课时" align="center" prop="totalHours" :show-overflow-tooltip="true" />
       <el-table-column label="当前已选人数" align="center" prop="selectedCount" :show-overflow-tooltip="true" />
-      <el-table-column label="状态" align="center" prop="status">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.edu_course_status" :value="scope.row.status" />
-        </template>
-      </el-table-column>
       <el-table-column v-if="canManageCourse" label="操作" align="center" class-name="small-padding fixed-width" width="180">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -115,13 +105,6 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="状态" prop="status">
-              <el-select v-model="form.status" placeholder="请选择状态" clearable style="width: 100%">
-                <el-option v-for="dict in dict.type.edu_course_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
             <el-form-item label="学分" prop="credit">
               <el-input-number v-model="form.credit" :min="0" :max="20" :precision="1" controls-position="right" style="width: 100%" />
             </el-form-item>
@@ -151,11 +134,6 @@
           <el-col :span="24">
             <el-form-item label="课程简介" prop="intro">
               <el-input v-model="form.intro" type="textarea" :rows="2" placeholder="请输入课程简介" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="课程完成规则" prop="completeRule">
-              <el-input v-model="form.completeRule" type="textarea" :rows="2" placeholder="请输入课程完成规则说明" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -289,7 +267,6 @@ export default {
         selectStartTime: null,
         selectEndTime: null,
         intro: null,
-        completeRule: '修满课程全部章节内容并完成相关作业及测验，达到规定学分要求后视为课程完成。',
         status: '0',
         remark: null
       }

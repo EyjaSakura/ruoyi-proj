@@ -7,11 +7,6 @@
       <el-form-item label="学期名称" prop="termName">
         <el-input v-model="queryParams.termName" placeholder="请输入学期名称" clearable style="width: 220px" @keyup.enter.native="handleQuery" />
       </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable style="width: 220px">
-          <el-option v-for="dict in dict.type.edu_term_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-        </el-select>
-      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -47,11 +42,6 @@
       <el-table-column label="结束日期" align="center" prop="endDate" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.endDate) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="状态" align="center" prop="status">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.edu_term_status" :value="scope.row.status" />
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="180">
@@ -94,11 +84,6 @@
         </el-form-item>
         <el-form-item label="选课结束时间" prop="selectEndTime">
           <el-date-picker v-model="form.selectEndTime" type="datetime" value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择学期后自动填充，可手动修改" clearable style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="form.status" placeholder="请选择状态" clearable style="width: 100%">
-            <el-option v-for="dict in dict.type.edu_term_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-          </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />

@@ -9,11 +9,6 @@
       <el-form-item label="作业标题" prop="title">
         <el-input v-model="queryParams.title" placeholder="请输入作业标题" clearable style="width: 220px" @keyup.enter.native="handleQuery" />
       </el-form-item>
-      <el-form-item label="发布状态" prop="publishStatus">
-        <el-select v-model="queryParams.publishStatus" placeholder="请选择发布状态" clearable style="width: 220px">
-          <el-option v-for="dict in dict.type.edu_assignment_publish_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-        </el-select>
-      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -58,11 +53,6 @@
           <span>{{ parseTime(scope.row.deadlineTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="发布状态" align="center" prop="publishStatus">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.edu_assignment_publish_status" :value="scope.row.publishStatus" />
-        </template>
-      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="180">
         <template slot-scope="scope">
           <el-button v-if="canEducationAction('assignment', 'edit')" v-hasPermi="['education:assignment:list']" size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -104,11 +94,6 @@
         </el-form-item>
         <el-form-item label="截止时间" prop="deadlineTime">
           <el-date-picker v-model="form.deadlineTime" type="datetime" value-format="yyyy-MM-dd HH:mm:ss" placeholder="请选择截止时间" clearable style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="发布状态" prop="publishStatus">
-          <el-select v-model="form.publishStatus" placeholder="请选择发布状态" clearable style="width: 100%">
-            <el-option v-for="dict in dict.type.edu_assignment_publish_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-          </el-select>
         </el-form-item>
         <!-- 发布教师：教师角色时自动获取当前用户，隐藏该字段 -->
         <el-form-item v-if="!isTeacherRole" label="发布教师" prop="publishUserId">
