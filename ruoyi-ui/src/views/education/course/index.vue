@@ -79,7 +79,25 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="课程号" prop="courseCode">
-              <el-input v-model="form.courseCode" placeholder="如10010001" />
+              <el-select
+                v-model="form.courseCode"
+                placeholder="点击后按空格搜索全部"
+                clearable
+                filterable
+                remote
+                :remote-method="searchCourseCode"
+                :loading="courseCodeLoading"
+                style="width: 100%"
+                @change="onCourseCodeChange"
+                @visible-change="onCourseCodeVisible"
+              >
+                <el-option
+                  v-for="item in courseCodeOptions"
+                  :key="item.courseId"
+                  :label="item.courseName + '（' + item.courseCode + '）'"
+                  :value="item.courseCode"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -89,12 +107,25 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="课程名称" prop="courseName">
-              <el-input v-model="form.courseName" placeholder="请输入课程名称" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="课程封面" prop="courseCover">
-              <image-upload v-model="form.courseCover" :class="'course-cover-upload'" />
+              <el-select
+                v-model="form.courseName"
+                placeholder="点击后按空格搜索全部"
+                clearable
+                filterable
+                remote
+                :remote-method="searchCourseName"
+                :loading="courseNameLoading"
+                style="width: 100%"
+                @change="onCourseNameChange"
+                @visible-change="onCourseNameVisible"
+              >
+                <el-option
+                  v-for="item in courseNameOptions"
+                  :key="item.courseId"
+                  :label="item.courseName + '（' + item.courseCode + '）'"
+                  :value="item.courseName"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -136,11 +167,6 @@
               <el-input v-model="form.intro" type="textarea" :rows="2" placeholder="请输入课程简介" />
             </el-form-item>
           </el-col>
-          <el-col :span="24">
-            <el-form-item label="备注" prop="remark">
-              <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注" />
-            </el-form-item>
-          </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -153,6 +179,7 @@
 
 <script>
 import { listCourse, getCourse, delCourse, addCourse, updateCourse } from '@/api/education/course'
+import { listCourse as listCourseLib } from '@/api/education/courseLib'
 import educationOptions from '@/mixins/educationOptions'
 import educationActionAuth from '@/mixins/educationActionAuth'
 import Treeselect from '@riophae/vue-treeselect'
@@ -196,6 +223,14 @@ export default {
         status: null
       },
       form: {},
+      /** 课程号远程搜索选项 */
+      courseCodeOptions: [],
+      courseCodeLoading: false,
+      /** 课程名称远程搜索选项 */
+      courseNameOptions: [],
+      courseNameLoading: false,
+      /** 当前选中的课程库课程（用于自动填充） */
+      selectedLibCourse: null,
       rules: {
         termId: [
           { required: true, message: '请选择所属学期', trigger: 'change' }
@@ -204,14 +239,14 @@ export default {
           { required: true, message: '请选择开课院系', trigger: 'change' }
         ],
         courseCode: [
-          { required: true, message: '请输入课程号', trigger: 'blur' }
+          { required: true, message: '请选择或输入课程号', trigger: 'change' }
         ],
         classNo: [
           { required: true, message: '请输入课序号', trigger: 'blur' },
           { pattern: /^[0-9A-Za-z]{1,4}$/, message: '课序号为1-4位字母或数字', trigger: 'blur' }
         ],
         courseName: [
-          { required: true, message: '请输入课程名称', trigger: 'blur' }
+          { required: true, message: '请选择或输入课程名称', trigger: 'change' }
         ]
       }
     }
@@ -270,6 +305,10 @@ export default {
         status: '0',
         remark: null
       }
+      // 清空搜索选项
+      this.courseCodeOptions = []
+      this.courseNameOptions = []
+      this.selectedLibCourse = null
       this.resetForm('form')
     },
     handleQuery() {
@@ -297,7 +336,7 @@ export default {
       // 根据系统时间预填当前所属学期
       this.autoFillCurrentTerm()
       this.open = true
-      this.title = '新增课程管理'
+      this.title = '新增课堂'
     },
     /** 根据当前日期自动匹配学期并预填 */
     autoFillCurrentTerm() {
@@ -329,6 +368,80 @@ export default {
       if (matched) {
         this.form.termId = matched.value
         this.fillCourseSelectTimes(matched.value)
+      }
+    },
+    /** 课程号远程搜索 */
+    searchCourseCode(query) {
+      this.courseCodeLoading = true
+      listCourseLib({
+        pageNum: 1,
+        pageSize: 50,
+        courseCode: query || undefined,
+        // 学院管理员只能搜索本学院的课程
+        deptId: this.isCollegeAdmin ? (this.$store.state.user.deptId || null) : null
+      }).then(response => {
+        this.courseCodeOptions = response.rows
+        this.courseCodeLoading = false
+      }).catch(() => {
+        this.courseCodeLoading = false
+      })
+    },
+    /** 课程名称远程搜索 */
+    searchCourseName(query) {
+      this.courseNameLoading = true
+      listCourseLib({
+        pageNum: 1,
+        pageSize: 50,
+        courseName: query || undefined,
+        // 学院管理员只能搜索本学院的课程
+        deptId: this.isCollegeAdmin ? (this.$store.state.user.deptId || null) : null
+      }).then(response => {
+        this.courseNameOptions = response.rows
+        this.courseNameLoading = false
+      }).catch(() => {
+        this.courseNameLoading = false
+      })
+    },
+    /** 课程号选择变化时，自动填充学分和简介 */
+    onCourseCodeChange(courseCode) {
+      if (courseCode) {
+        // 从课程号选项中找到对应课程
+        const course = this.courseCodeOptions.find(c => c.courseCode === courseCode)
+        if (course) {
+          this.selectedLibCourse = course
+          // 只填入学分和简介，课程名称由用户单独选择
+          this.$set(this.form, 'credit', course.credit)
+          this.$set(this.form, 'intro', course.intro)
+        }
+      } else {
+        this.selectedLibCourse = null
+      }
+    },
+    /** 课程名称选择变化时，自动填充学分和简介 */
+    onCourseNameChange(courseName) {
+      if (courseName) {
+        // 从课程名称选项中找到对应课程
+        const course = this.courseNameOptions.find(c => c.courseName === courseName)
+        if (course) {
+          this.selectedLibCourse = course
+          // 只填入学分和简介，课程名称已在表单中
+          this.$set(this.form, 'credit', course.credit)
+          this.$set(this.form, 'intro', course.intro)
+        }
+      } else {
+        this.selectedLibCourse = null
+      }
+    },
+    /** 课程号下拉框展开时，若无选项则自动加载全部 */
+    onCourseCodeVisible(visible) {
+      if (visible && this.courseCodeOptions.length === 0) {
+        this.searchCourseCode('')
+      }
+    },
+    /** 课程名称下拉框展开时，若无选项则自动加载全部 */
+    onCourseNameVisible(visible) {
+      if (visible && this.courseNameOptions.length === 0) {
+        this.searchCourseName('')
       }
     },
     handleUpdate(row) {

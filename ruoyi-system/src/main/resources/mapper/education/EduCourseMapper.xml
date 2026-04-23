@@ -68,6 +68,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="courseName != null and courseName != ''"> and t.course_name like concat('%', #{courseName}, '%')</if>
             <if test="status != null and status != ''"> and t.status = #{status}</if>
             <if test="deptId != null"> and t.dept_id = #{deptId}</if>
+            <if test="termId != null"> and t.term_id = #{termId}</if>
+            <if test="params.excludeTermId != null"> and t.term_id != #{params.excludeTermId}</if>
             <if test="params.scopeTeacherUserId != null">
                 and exists (
                     select 1

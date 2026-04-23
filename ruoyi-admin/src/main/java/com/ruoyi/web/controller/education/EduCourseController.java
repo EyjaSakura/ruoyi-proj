@@ -34,6 +34,8 @@ public class EduCourseController extends BaseController
     {
         educationPermission.checkModuleAction("course", EducationPermissionService.ACTION_QUERY);
         educationPermission.applyCourseScope(course, true);
+        // 排除 termId = 9999（课程库）的数据
+        course.getParams().put("excludeTermId", 9999L);
         startPage();
         List<EduCourse> list = courseService.selectEduCourseList(course);
         return getDataTable(list);
@@ -46,6 +48,8 @@ public class EduCourseController extends BaseController
     {
         educationPermission.checkModuleAction("course", EducationPermissionService.ACTION_EXPORT);
         educationPermission.applyCourseScope(course, true);
+        // 排除 termId = 9999（课程库）的数据
+        course.getParams().put("excludeTermId", 9999L);
         List<EduCourse> list = courseService.selectEduCourseList(course);
         ExcelUtil<EduCourse> util = new ExcelUtil<EduCourse>(EduCourse.class);
         util.exportExcel(response, list, "课程管理数据");

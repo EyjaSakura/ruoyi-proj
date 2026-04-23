@@ -84,6 +84,12 @@
               :value="item.value"
             />
           </el-select>
+          <span v-if="form.parentChapterType === 'chapter' && form.courseId && getParentChapterOptions(form.courseId, form.chapterId, 'chapter').length === 0" style="color: #E6A23C; font-size: 12px; margin-top: 4px;">
+            提示：该课程下暂无顶级章节，请先新建顶级章节
+          </span>
+          <span v-if="form.parentChapterType === 'chapter' && !form.courseId" style="color: #909399; font-size: 12px; margin-top: 4px;">
+            请先选择课程名称
+          </span>
         </el-form-item>
         <!-- ancestors 由后端自动计算，无需前端维护 -->
         <el-form-item label="章节标题" prop="chapterTitle">
