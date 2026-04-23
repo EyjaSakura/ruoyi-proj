@@ -191,19 +191,24 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           <if test="excludeCourseId != null"> and course_id != #{excludeCourseId}</if>
     </select>
 
-    <!-- 模糊搜索课程（用于下拉框实时搜索） -->
+    <!-- 模糊搜索课程（用于下拉框实时搜索，支持课程号和课程名称OR搜索） -->
     <select id="selectCourseForSearch" resultMap="EduCourseResult">
         <include refid="selectEduCourseVo"/>
         <where>
             and (t.del_flag is null or t.del_flag = '0')
             <if test="courseName != null and courseName != ''">
-                and t.course_name like concat('%', #{courseName}, '%')
+                and (t.course_name like concat('%', #{courseName}, '%')
+                     or t.course_code like concat('%', #{courseName}, '%'))
+            </if>
+            <if test="courseCode != null and courseCode != ''">
+                and (t.course_name like concat('%', #{courseCode}, '%')
+                     or t.course_code like concat('%', #{courseCode}, '%'))
             </if>
             <if test="deptId != null">
                 and t.dept_id = #{deptId}
             </if>
         </where>
         order by t.course_id desc
-        limit 20
+        limit 50
     </select>
 </mapper>

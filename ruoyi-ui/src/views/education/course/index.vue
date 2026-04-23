@@ -78,21 +78,21 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="课程号" prop="courseCode">
+            <el-form-item label="课程" prop="courseCode">
               <el-select
                 v-model="form.courseCode"
-                placeholder="点击后按空格搜索全部"
+                placeholder="请输入课程名称/课程号搜索"
                 clearable
                 filterable
                 remote
-                :remote-method="searchCourseCode"
-                :loading="courseCodeLoading"
+                :remote-method="searchCourse"
+                :loading="courseLoading"
                 style="width: 100%"
-                @change="onCourseCodeChange"
-                @visible-change="onCourseCodeVisible"
+                @change="onCourseChange"
+                @visible-change="onCourseVisible"
               >
                 <el-option
-                  v-for="item in courseCodeOptions"
+                  v-for="item in courseOptions"
                   :key="item.courseId"
                   :label="item.courseName + '（' + item.courseCode + '）'"
                   :value="item.courseCode"
@@ -103,29 +103,6 @@
           <el-col :span="12">
             <el-form-item label="课序号" prop="classNo">
               <el-input v-model="form.classNo" placeholder="如01、02（1-4位字母或数字）" maxlength="4" show-word-limit />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="课程名称" prop="courseName">
-              <el-select
-                v-model="form.courseName"
-                placeholder="点击后按空格搜索全部"
-                clearable
-                filterable
-                remote
-                :remote-method="searchCourseName"
-                :loading="courseNameLoading"
-                style="width: 100%"
-                @change="onCourseNameChange"
-                @visible-change="onCourseNameVisible"
-              >
-                <el-option
-                  v-for="item in courseNameOptions"
-                  :key="item.courseId"
-                  :label="item.courseName + '（' + item.courseCode + '）'"
-                  :value="item.courseName"
-                />
-              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -223,12 +200,9 @@ export default {
         status: null
       },
       form: {},
-      /** 课程号远程搜索选项 */
-      courseCodeOptions: [],
-      courseCodeLoading: false,
-      /** 课程名称远程搜索选项 */
-      courseNameOptions: [],
-      courseNameLoading: false,
+      /** 课程远程搜索选项（支持课程号和课程名称） */
+      courseOptions: [],
+      courseLoading: false,
       /** 当前选中的课程库课程（用于自动填充） */
       selectedLibCourse: null,
       rules: {
@@ -306,8 +280,7 @@ export default {
         remark: null
       }
       // 清空搜索选项
-      this.courseCodeOptions = []
-      this.courseNameOptions = []
+      this.courseOptions = []
       this.selectedLibCourse = null
       this.resetForm('form')
     },
@@ -380,36 +353,41 @@ export default {
         // 学院管理员只能搜索本学院的课程
         deptId: this.isCollegeAdmin ? (this.$store.state.user.deptId || null) : null
       }).then(response => {
-        this.courseCodeOptions = response.rows
-        this.courseCodeLoading = false
+        this.courseOptions = response.rows
+        this.courseLoading = false
       }).catch(() => {
-        this.courseCodeLoading = false
+        this.courseLoading = false
       })
     },
-    /** 课程名称远程搜索 */
-    searchCourseName(query) {
-      this.courseNameLoading = true
+    /** 课程远程搜索（同时支持课程号和课程名称搜索） */
+    searchCourse(query) {
+      this.courseLoading = true
       listCourseLib({
         pageNum: 1,
         pageSize: 50,
+        // 同时传课程号和课程名称参数，后端会做OR匹配
+        courseCode: query || undefined,
         courseName: query || undefined,
         // 学院管理员只能搜索本学院的课程
         deptId: this.isCollegeAdmin ? (this.$store.state.user.deptId || null) : null
       }).then(response => {
-        this.courseNameOptions = response.rows
-        this.courseNameLoading = false
+        this.courseOptions = response.rows
+        this.courseLoading = false
       }).catch(() => {
-        this.courseNameLoading = false
+        this.courseLoading = false
       })
     },
-    /** 课程号选择变化时，自动填充学分和简介 */
-    onCourseCodeChange(courseCode) {
+    /** 课程选择变化时，自动填充完整课程信息 */
+    onCourseChange(courseCode) {
       if (courseCode) {
-        // 从课程号选项中找到对应课程
-        const course = this.courseCodeOptions.find(c => c.courseCode === courseCode)
+        // 从课程选项中找到对应课程
+        const course = this.courseOptions.find(c => c.courseCode === courseCode)
         if (course) {
           this.selectedLibCourse = course
-          // 只填入学分和简介，课程名称由用户单独选择
+          // 填入完整的课程库信息（学期和总课时由用户自行设置）
+          this.$set(this.form, 'courseCode', course.courseCode)
+          this.$set(this.form, 'courseName', course.courseName)
+          this.$set(this.form, 'courseType', course.courseType)
           this.$set(this.form, 'credit', course.credit)
           this.$set(this.form, 'intro', course.intro)
         }
@@ -417,31 +395,10 @@ export default {
         this.selectedLibCourse = null
       }
     },
-    /** 课程名称选择变化时，自动填充学分和简介 */
-    onCourseNameChange(courseName) {
-      if (courseName) {
-        // 从课程名称选项中找到对应课程
-        const course = this.courseNameOptions.find(c => c.courseName === courseName)
-        if (course) {
-          this.selectedLibCourse = course
-          // 只填入学分和简介，课程名称已在表单中
-          this.$set(this.form, 'credit', course.credit)
-          this.$set(this.form, 'intro', course.intro)
-        }
-      } else {
-        this.selectedLibCourse = null
-      }
-    },
-    /** 课程号下拉框展开时，若无选项则自动加载全部 */
-    onCourseCodeVisible(visible) {
-      if (visible && this.courseCodeOptions.length === 0) {
-        this.searchCourseCode('')
-      }
-    },
-    /** 课程名称下拉框展开时，若无选项则自动加载全部 */
-    onCourseNameVisible(visible) {
-      if (visible && this.courseNameOptions.length === 0) {
-        this.searchCourseName('')
+    /** 课程下拉框展开时，若无选项则自动加载全部 */
+    onCourseVisible(visible) {
+      if (visible && this.courseOptions.length === 0) {
+        this.searchCourse('')
       }
     },
     handleUpdate(row) {
