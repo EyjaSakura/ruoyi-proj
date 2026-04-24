@@ -143,32 +143,34 @@
           </el-col>
         </el-row>
 
-        <!-- 班级卡片区域：每个班单独配置教师和容量（新增时显示） -->
-        <el-row v-if="form.courseId == null" :gutter="16" class="mt16">
-          <el-col v-for="(card, index) in classCards" :key="index" :span="12">
-            <el-card shadow="hover" class="class-card">
-              <div slot="header" class="card-header">
-                <span>课堂 {{ card.classNo }}</span>
-              </div>
-              <el-form-item label="授课教师">
+        <!-- 课堂卡片区域：每个课堂横向排列，教师和容量同一行（新增时显示） -->
+        <el-row v-if="form.courseId == null" :gutter="12" class="mt16">
+          <el-col v-for="(card, index) in classCards" :key="index" :span="24">
+            <div class="class-card-bar">
+              <span class="card-bar-title">课堂 {{ card.classNo }}</span>
+              <span style="color: #303133; margin: 0 8px;">|</span>
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <span style="color: #303133; font-size: 13px;">授课教师</span>
                 <el-select
                   v-model="card.teacherUserId"
-                  placeholder="输入教师姓名或工号搜索"
                   filterable
                   remote
                   :remote-method="(query) => searchTeacherForCard(query, card)"
                   :loading="card.teacherLoading"
-                  style="width: 100%"
+                  style="width: 200px"
                 >
                   <el-option v-for="item in card.teacherOptions" :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
-              </el-form-item>
-              <el-form-item label="容量">
-                <el-select v-model="card.capacity" placeholder="请选择容量" style="width: 100%">
-                  <el-option v-for="opt in capacityOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-                </el-select>
-              </el-form-item>
-            </el-card>
+                <span style="color: #303133; font-size: 13px;">课容量</span>
+                <el-input-number
+                  v-model="card.capacity"
+                  :min="1"
+                  :max="9999"
+                  controls-position="right"
+                  style="width: 120px"
+                />
+              </div>
+            </div>
           </el-col>
         </el-row>
       </el-form>
@@ -542,6 +544,16 @@ export default {
       this.$refs.form.validate(valid => {
         if (!valid) return
 
+        // 校验：课容量必须为数字
+        const invalidCapacity = this.classCards.find(card => {
+          const v = Number(card.capacity)
+          return !Number.isInteger(v) || v < 1 || v > 9999
+        })
+        if (invalidCapacity) {
+          this.$modal.msgError('课容量必须为1~9999之间的整数')
+          return
+        }
+
         // 校验：多个班时每个班必须有教师
         if (this.form.classCount > 1) {
           const invalidCard = this.classCards.find(card => !card.teacherUserId)
@@ -651,4 +663,24 @@ export default {
 .mt16 {
   margin-top: 16px;
 }
+/* 课堂横条卡片：教师和容量同一行 */
+.class-card-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  margin-bottom: 10px;
+  background: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  .card-bar-title {
+    font-weight: bold;
+    color: #303133;
+    min-width: 60px;
+  }
+  max-width: 720px;
+  margin: 0 auto 10px;
+}
+
 </style>
