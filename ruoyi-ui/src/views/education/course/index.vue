@@ -126,7 +126,7 @@
           </el-col>
           <el-col v-if="form.courseId == null" :span="12">
             <el-form-item label="课程类型" prop="courseType">
-              <el-select v-model="form.courseType" placeholder="请选择课程类型" clearable disabled style="width: 100%">
+              <el-select v-model="form.courseType" placeholder="选择课程后自动填入" disabled style="width: 100%">
                 <el-option v-for="dict in dict.type.edu_course_type" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
@@ -138,7 +138,7 @@
           </el-col>
           <el-col v-if="form.courseId == null" :span="24">
             <el-form-item label="课程简介" prop="intro">
-              <el-input v-model="form.intro" type="textarea" :rows="2" disabled placeholder="请输入课程简介" />
+              <el-input v-model="form.intro" type="textarea" :rows="2" disabled placeholder="选择课程后自动填入" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -297,8 +297,8 @@ export default {
         classCount: 1,
         courseName: null,
         courseCover: '',
-        courseType: '2',
-        credit: 3.0,
+        courseType: null,
+        credit: 0,
         totalHours: 30,
         selectStartTime: null,
         selectEndTime: null,
@@ -396,8 +396,8 @@ export default {
       listCourseLib({
         pageNum: 1,
         pageSize: 50,
-        // 同时传课程号和课程名称参数，后端会做OR匹配
-        courseCode: query || undefined,
+        // 只传课程名称参数（后端 LIKE 模糊匹配课程名）
+        courseCode: undefined,
         courseName: query || undefined,
         // 学院管理员只能搜索本学院的课程
         deptId: this.isCollegeAdmin ? (this.$store.state.user.deptId || null) : null

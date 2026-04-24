@@ -94,7 +94,7 @@
           <el-input v-model="form.fileName" placeholder="上传文件后自动填充" disabled />
         </el-form-item>
         <el-form-item label="文件地址" prop="fileUrl">
-          <file-upload v-model="form.fileUrl" :limit="1" :fileSize="100" size-unit="MB" @on-success="handleFileSuccess" />
+          <file-upload v-model="form.fileUrl" :fileType="allowedFileTypes" :limit="1" :fileSize="100" size-unit="MB" @on-success="handleFileSuccess" />
         </el-form-item>
         <el-form-item label="文件后缀" prop="fileSuffix">
           <el-input v-model="form.fileSuffix" placeholder="上传文件后自动填充" disabled />
@@ -165,6 +165,19 @@ export default {
   created() {
     this.loadEducationOptions()
     this.getList()
+  },
+  computed: {
+    // 根据资源类型动态切换允许上传的文件格式
+    allowedFileTypes() {
+      const map = {
+        '1': ['ppt', 'pptx', 'pdf'],         // 课件
+        '2': ['doc', 'docx'],                 // 文档资料
+        '3': ['jpg', 'jpeg', 'png'],          // 图片
+        '4': ['mp4'],                         // 视频
+        '5': ['zip', 'rar', '7z'],            // 压缩包
+      }
+      return map[this.form.resourceType] || []
+    }
   },
   methods: {
     getChapterOptions(courseId) {
