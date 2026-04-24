@@ -155,8 +155,8 @@ export default {
       }
     }
   },
-  created() {
-    this.loadEducationOptions()
+  async created() {
+    await this.loadEducationOptions()
     this.getList()
   },
   methods: {
@@ -298,12 +298,14 @@ export default {
             this.$modal.msgSuccess('修改成功')
             this.open = false
             this.getList()
+            this.loadEducationOptions()
           })
         } else {
           addChapter(this.form).then(() => {
             this.$modal.msgSuccess('新增成功')
             this.open = false
             this.getList()
+            this.loadEducationOptions()
           })
         }
       })
@@ -313,6 +315,7 @@ export default {
         return delChapter(row.chapterId)
       }).then(() => {
         this.getList()
+        this.loadEducationOptions()
         this.$modal.msgSuccess('删除成功')
       }).catch(() => {})
     },
