@@ -101,32 +101,13 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="课序号" prop="classNo">
-              <el-input v-model="form.classNo" placeholder="如01、02（1-4位字母或数字）" maxlength="4" show-word-limit />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="课程类型" prop="courseType">
-              <el-select v-model="form.courseType" placeholder="请选择课程类型" clearable style="width: 100%">
-                <el-option v-for="dict in dict.type.edu_course_type" :key="dict.value" :label="dict.label" :value="dict.value" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="学分" prop="credit">
-              <el-input-number v-model="form.credit" :min="0" :max="20" :precision="1" controls-position="right" style="width: 100%" />
+            <el-form-item label="课堂数量" prop="classCount">
+              <el-input-number v-model="form.classCount" :min="1" :max="99" controls-position="right" style="width: 100%" @change="onClassCountChange" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="总课时" prop="totalHours">
               <el-input-number v-model="form.totalHours" :min="0" :max="999" controls-position="right" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="容量上限" prop="capacity">
-              <el-select v-model="form.capacity" placeholder="请选择容量上限" clearable style="width: 100%">
-                <el-option v-for="opt in capacityOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -139,10 +120,51 @@
               <el-date-picker v-model="form.selectEndTime" type="datetime" value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择学期后自动填充，可手动修改" clearable style="width: 100%" />
             </el-form-item>
           </el-col>
-          <el-col :span="24">
-            <el-form-item label="课程简介" prop="intro">
-              <el-input v-model="form.intro" type="textarea" :rows="2" placeholder="请输入课程简介" />
+          <el-col v-if="form.courseId == null" :span="12">
+            <el-form-item label="课程类型" prop="courseType">
+              <el-select v-model="form.courseType" placeholder="请选择课程类型" clearable disabled style="width: 100%">
+                <el-option v-for="dict in dict.type.edu_course_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+              </el-select>
             </el-form-item>
+          </el-col>
+          <el-col v-if="form.courseId == null" :span="12">
+            <el-form-item label="学分" prop="credit">
+              <el-input-number v-model="form.credit" :min="0" :max="20" :precision="1" controls-position="right" disabled style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col v-if="form.courseId == null" :span="24">
+            <el-form-item label="课程简介" prop="intro">
+              <el-input v-model="form.intro" type="textarea" :rows="2" disabled placeholder="请输入课程简介" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 班级卡片区域：每个班单独配置教师和容量（新增时显示） -->
+        <el-row v-if="form.courseId == null" :gutter="16" class="mt16">
+          <el-col v-for="(card, index) in classCards" :key="index" :span="12">
+            <el-card shadow="hover" class="class-card">
+              <div slot="header" class="card-header">
+                <span>课堂 {{ card.classNo }}</span>
+              </div>
+              <el-form-item label="授课教师">
+                <el-select
+                  v-model="card.teacherUserId"
+                  placeholder="输入教师姓名或工号搜索"
+                  filterable
+                  remote
+                  :remote-method="(query) => searchTeacherForCard(query, card)"
+                  :loading="card.teacherLoading"
+                  style="width: 100%"
+                >
+                  <el-option v-for="item in card.teacherOptions" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="容量">
+                <el-select v-model="card.capacity" placeholder="请选择容量" style="width: 100%">
+                  <el-option v-for="opt in capacityOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+                </el-select>
+              </el-form-item>
+            </el-card>
           </el-col>
         </el-row>
       </el-form>
@@ -155,8 +177,9 @@
 </template>
 
 <script>
-import { listCourse, getCourse, delCourse, addCourse, updateCourse } from '@/api/education/course'
+import { listCourse, getCourse, delCourse, addCourse, updateCourse, addCourseTeacher } from '@/api/education/course'
 import { listCourse as listCourseLib } from '@/api/education/courseLib'
+import { searchTeacher } from '@/api/education/courseTeacher'
 import educationOptions from '@/mixins/educationOptions'
 import educationActionAuth from '@/mixins/educationActionAuth'
 import Treeselect from '@riophae/vue-treeselect'
@@ -205,6 +228,8 @@ export default {
       courseLoading: false,
       /** 当前选中的课程库课程（用于自动填充） */
       selectedLibCourse: null,
+      /** 班级卡片数组（用于批量新增时每个班单独配置教师和容量） */
+      classCards: [],
       rules: {
         termId: [
           { required: true, message: '请选择所属学期', trigger: 'change' }
@@ -215,9 +240,8 @@ export default {
         courseCode: [
           { required: true, message: '请选择或输入课程号', trigger: 'change' }
         ],
-        classNo: [
-          { required: true, message: '请输入课序号', trigger: 'blur' },
-          { pattern: /^[0-9A-Za-z]{1,4}$/, message: '课序号为1-4位字母或数字', trigger: 'blur' }
+        classCount: [
+          { required: true, message: '请输入课堂数量', trigger: 'blur' }
         ],
         courseName: [
           { required: true, message: '请选择或输入课程名称', trigger: 'change' }
@@ -266,13 +290,12 @@ export default {
         termId: null,
         deptId: null,
         courseCode: null,
-        classNo: '01',
+        classCount: 1,
         courseName: null,
         courseCover: '',
         courseType: '2',
         credit: 3.0,
         totalHours: 30,
-        capacity: 30,
         selectStartTime: null,
         selectEndTime: null,
         intro: null,
@@ -282,6 +305,10 @@ export default {
       // 清空搜索选项
       this.courseOptions = []
       this.selectedLibCourse = null
+      // 清空班级卡片
+      this.classCards = []
+      // 初始化单个班级卡片
+      this.initClassCards()
       this.resetForm('form')
     },
     handleQuery() {
@@ -473,6 +500,127 @@ export default {
       after.setDate(after.getDate() + 15)
       this.form.selectStartTime = fmt(before) + ' 00:00:00'
       this.form.selectEndTime = fmt(after) + ' 23:59:59'
+    },
+    /** 初始化班级卡片数组 */
+    initClassCards() {
+      const count = this.form.classCount || 1
+      this.classCards = []
+      for (let i = 0; i < count; i++) {
+        this.classCards.push({
+          classNo: String(i + 1).padStart(2, '0'),
+          teacherUserId: null,
+          capacity: 30,
+          teacherOptions: [],
+          teacherLoading: false
+        })
+      }
+      // 预加载每个卡片的教师选项
+      this.classCards.forEach(card => {
+        this.searchTeacherForCard('', card)
+      })
+    },
+    /** 班级数量变化时，重新生成班级卡片 */
+    onClassCountChange(count) {
+      this.initClassCards()
+    },
+    /** 班级卡片中搜索教师（远程搜索，已按学院过滤） */
+    searchTeacherForCard(query, card) {
+      card.teacherLoading = true
+      searchTeacher(query || '').then(response => {
+        card.teacherOptions = response.data || []
+        card.teacherLoading = false
+      }).catch(() => {
+        card.teacherLoading = false
+      })
+    },
+    /** 提交表单：单个新增或批量新增（循环调用授课安排） */
+    submitForm() {
+      this.$refs.form.validate(valid => {
+        if (!valid) return
+
+        // 校验：多个班时每个班必须有教师
+        if (this.form.classCount > 1) {
+          const invalidCard = this.classCards.find(card => !card.teacherUserId)
+          if (invalidCard) {
+            this.$modal.msgError('请为所有课堂选择授课教师')
+            return
+          }
+        }
+
+        if (this.form.courseId != null) {
+          // 修改模式
+          updateCourse(this.form).then(() => {
+            this.$modal.msgSuccess('修改成功')
+            this.open = false
+            this.getList()
+          })
+        } else {
+          // 新增模式
+          if (this.form.classCount > 1) {
+            // 批量新增：两步走
+            // 第一步：循环调用 addCourse，获得每个班的 courseId
+            const coursePromises = this.classCards.map(card => {
+              const formData = { ...this.form }
+              formData.classNo = card.classNo
+              formData.capacity = card.capacity
+              return addCourse(formData).then(res => {
+                return { card, courseId: res.data }
+              })
+            })
+
+            Promise.all(coursePromises).then(results => {
+              // 第二步：循环调用 addCourseTeacher，为每个班建授课关联
+              const teacherPromises = results.map(({ card, courseId }) => {
+                return addCourseTeacher({
+                  courseId: courseId,
+                  teacherUserId: card.teacherUserId,
+                  teacherRole: '1',
+                  isOwner: '1',
+                  orderNum: 1,
+                  status: '0'
+                })
+              })
+              return Promise.all(teacherPromises)
+            }).then(() => {
+              this.$modal.msgSuccess('批量新增成功')
+              this.open = false
+              this.getList()
+            }).catch(err => {
+              this.$modal.msgError(err.msg || '批量新增失败')
+            })
+          } else {
+            // 单个新增：同样两步走
+            const formData = { ...this.form }
+            const card = this.classCards[0] || {}
+            if (card.capacity) {
+              formData.capacity = card.capacity
+            }
+            addCourse(formData).then(res => {
+              const courseId = res.data
+              if (card.teacherUserId) {
+                return addCourseTeacher({
+                  courseId: courseId,
+                  teacherUserId: card.teacherUserId,
+                  teacherRole: '1',
+                  isOwner: '1',
+                  orderNum: 1,
+                  status: '0'
+                }).then(() => {
+                  this.$modal.msgSuccess('新增成功')
+                  this.open = false
+                  this.getList()
+                })
+              } else {
+                this.$modal.msgSuccess('新增成功')
+                this.open = false
+                this.getList()
+              }
+            }).catch(err => {
+              this.$modal.msgError(err.msg || '新增失败')
+            })
+          }
+        }
+      })
     }
   }
 }
@@ -487,5 +635,16 @@ export default {
 .course-cover-upload ::v-deep .el-upload-list__item {
   width: 80px;
   height: 80px;
+}
+/* 班级卡片样式 */
+.class-card {
+  margin-bottom: 16px;
+  .card-header {
+    font-weight: bold;
+    color: #303133;
+  }
+}
+.mt16 {
+  margin-top: 16px;
 }
 </style>

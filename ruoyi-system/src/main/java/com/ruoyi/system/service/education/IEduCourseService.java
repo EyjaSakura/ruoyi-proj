@@ -12,9 +12,15 @@ public interface IEduCourseService
 
     public List<EduCourse> selectEduCourseList(EduCourse course);
 
-    public int insertEduCourse(EduCourse course);
+    public Long insertEduCourse(EduCourse course);
 
-    public int insertEduCourse(EduCourse course, Long ownerTeacherUserId);
+    /**
+     * 新增课堂实例（学院管理员批量新增场景，返回新课堂ID供后续建授课关联）
+     * @param course 课堂对象
+     * @param ownerTeacherUserId 主讲教师ID（null表示不自动建授课关联，由调用方自行处理）
+     * @return 新增课堂的 courseId（始终返回 Long，不管成功失败；插入失败返回 null）
+     */
+    public Long insertEduCourse(EduCourse course, Long ownerTeacherUserId);
 
     public int updateEduCourse(EduCourse course);
 

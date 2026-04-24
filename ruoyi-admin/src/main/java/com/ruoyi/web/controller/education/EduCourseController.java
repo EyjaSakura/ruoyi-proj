@@ -83,7 +83,12 @@ public class EduCourseController extends BaseController
         }
         course.setCreateBy(getUsername());
         Long ownerTeacherUserId = educationPermission.isTeacher() ? educationPermission.getCurrentUserId() : null;
-        return toAjax(courseService.insertEduCourse(course, ownerTeacherUserId));
+        Long courseId = courseService.insertEduCourse(course, ownerTeacherUserId);
+        if (courseId == null)
+        {
+            return error("新增课程失败");
+        }
+        return success(courseId);
     }
 
     @PreAuthorize("@ss.hasPermi('education:course:list')")

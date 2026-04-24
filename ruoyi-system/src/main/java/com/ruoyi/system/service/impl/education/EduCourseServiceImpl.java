@@ -37,14 +37,14 @@ public class EduCourseServiceImpl implements IEduCourseService
     }
 
     @Override
-    public int insertEduCourse(EduCourse course)
+    public Long insertEduCourse(EduCourse course)
     {
         return insertEduCourse(course, null);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int insertEduCourse(EduCourse course, Long ownerTeacherUserId)
+    public Long insertEduCourse(EduCourse course, Long ownerTeacherUserId)
     {
         // 课序号默认值补充
         if (!StringUtils.hasText(course.getClassNo()))
@@ -66,7 +66,8 @@ public class EduCourseServiceImpl implements IEduCourseService
             courseTeacher.setRemark("教师新增课程时自动建立主讲教师关联");
             courseTeacherService.insertEduCourseTeacher(courseTeacher);
         }
-        return rows;
+        // 返回新课堂的 courseId（前端需要用它来建授课关联）
+        return rows > 0 ? course.getCourseId() : null;
     }
 
     @Override

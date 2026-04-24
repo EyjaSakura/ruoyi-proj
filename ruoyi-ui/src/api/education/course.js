@@ -37,3 +37,15 @@ export function delCourse(courseId) {
     method: 'delete'
   })
 }
+
+/**
+ * 新增授课安排（供批量新增课堂时循环调用）
+ * @param data { courseId, teacherUserId }
+ */
+export function addCourseTeacher(data) {
+  return request({
+    url: '/education/courseTeacher',
+    method: 'post',
+    data: data
+  })
+}
