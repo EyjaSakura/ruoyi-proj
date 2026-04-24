@@ -206,6 +206,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           <if test="excludeCourseId != null"> and course_id != #{excludeCourseId}</if>
     </select>
 
+    <!-- 唯一性校验：检查同一学期同一课程号是否已存在（排除自身，不限课序号） -->
+    <select id="countByTermAndCourseCode" resultType="int">
+        select count(1) from edu_course
+        where term_id = #{termId}
+          and course_code = #{courseCode}
+          and (del_flag is null or del_flag = '0')
+          <if test="excludeCourseId != null"> and course_id != #{excludeCourseId}</if>
+    </select>
+
     <!-- 模糊搜索课程（用于下拉框实时搜索，支持课程号和课程名称OR搜索） -->
     <select id="selectCourseForSearch" resultMap="EduCourseResult">
         <include refid="selectEduCourseVo"/>

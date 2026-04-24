@@ -5,11 +5,13 @@ function defaultEducationOptions() {
     deptOptions: [],
     termOptions: [],
     courseOptions: [],
+    classroomCourseOptions: [],
     teacherUserOptions: [],
     studentUserOptions: [],
     userOptions: [],
     assignmentOptions: [],
     chapterOptions: [],
+    classroomChapterOptions: [],
     noticeOptions: [],
     submissionOptions: []
   }

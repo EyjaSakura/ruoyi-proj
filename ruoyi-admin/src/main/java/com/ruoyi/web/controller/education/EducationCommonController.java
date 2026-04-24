@@ -124,6 +124,32 @@ public class EducationCommonController extends BaseController
 
         List<SysUser> users = buildScopedUsers(teachers, students);
 
+        // 过滤出课堂课程（termId != 9999），用于章节管理等模块
+        List<EduCourse> classroomCourses = new ArrayList<>();
+        for (EduCourse c : courses)
+        {
+            if (c.getTermId() != null && c.getTermId() != 9999L)
+            {
+                classroomCourses.add(c);
+            }
+        }
+
+        // 过滤出课堂章节（course 属于 termId != 9999 的课堂）
+        List<EduCourseChapter> classroomChapters = new ArrayList<>();
+        Map<Long, Long> courseTermMap = new LinkedHashMap<Long, Long>();
+        for (EduCourse c : courses)
+        {
+            courseTermMap.put(c.getCourseId(), c.getTermId());
+        }
+        for (EduCourseChapter ch : chapters)
+        {
+            Long termId = courseTermMap.get(ch.getCourseId());
+            if (termId != null && termId != 9999L)
+            {
+                classroomChapters.add(ch);
+            }
+        }
+
         Map<Long, String> courseLabelMap = new LinkedHashMap<Long, String>();
         for (EduCourse course : courses)
         {
@@ -145,6 +171,8 @@ public class EducationCommonController extends BaseController
 
         ajax.put("termOptions", toTermOptions(terms));
         ajax.put("courseOptions", toOptions(courses, EduCourse::getCourseId, this::buildCourseLabel));
+        // 过滤掉 termId=9999 的课程，用于课程章节管理（课堂章节不出现课程库的课程）
+        ajax.put("classroomCourseOptions", toOptions(classroomCourses, EduCourse::getCourseId, this::buildCourseLabel));
         ajax.put("teacherUserOptions", toOptions(teachers, EduTeacherProfile::getUserId,
             item -> buildNameWithCode(item.getTeacherName(), item.getTeacherNo())));
         ajax.put("studentUserOptions", toOptions(students, EduStudentProfile::getUserId,
@@ -152,7 +180,16 @@ public class EducationCommonController extends BaseController
         ajax.put("userOptions", toOptions(users, SysUser::getUserId, this::buildUserLabel));
         ajax.put("assignmentOptions", toOptions(assignments, EduAssignment::getAssignmentId,
             item -> buildAssociationLabel(item.getTitle(), courseLabelMap.get(item.getCourseId()))));
+        // chapterOptions 仍返回全部（其他模块可能用到）；classroomChapterOptions 仅含课堂章节
         ajax.put("chapterOptions", toOptions(chapters, EduCourseChapter::getChapterId,
+            item -> buildAssociationLabel(item.getChapterTitle(), courseLabelMap.get(item.getCourseId())),
+            item -> {
+                Map<String, Object> extra = new LinkedHashMap<String, Object>();
+                extra.put("courseId", item.getCourseId());
+                extra.put("chapterType", item.getChapterType());
+                return extra;
+            }));
+        ajax.put("classroomChapterOptions", toOptions(classroomChapters, EduCourseChapter::getChapterId,
             item -> buildAssociationLabel(item.getChapterTitle(), courseLabelMap.get(item.getCourseId())),
             item -> {
                 Map<String, Object> extra = new LinkedHashMap<String, Object>();

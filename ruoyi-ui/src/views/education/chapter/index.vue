@@ -1,9 +1,9 @@
 <template>
   <div class="app-container">
     <el-form v-show="showSearch" ref="queryForm" :model="queryParams" size="small" :inline="true" label-width="96px">
-      <el-form-item label="课程名称" prop="courseId">
-        <el-select v-model="queryParams.courseId" placeholder="请选择课程名称" clearable filterable style="width: 220px">
-          <el-option v-for="item in educationOptions.courseOptions" :key="item.value" :label="item.label" :value="item.value" />
+      <el-form-item label="课堂名称" prop="courseId">
+        <el-select v-model="queryParams.courseId" placeholder="请选择课堂名称" clearable filterable style="width: 220px">
+          <el-option v-for="item in educationOptions.classroomCourseOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="章节标题" prop="chapterTitle">
@@ -64,9 +64,9 @@
 
     <el-dialog :title="title" :visible.sync="open" width="720px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="课程名称" prop="courseId">
-          <el-select v-model="form.courseId" placeholder="请选择课程名称" clearable filterable style="width: 100%" @change="onCourseChange">
-            <el-option v-for="item in educationOptions.courseOptions" :key="item.value" :label="item.label" :value="item.value" />
+        <el-form-item label="课堂名称" prop="courseId">
+          <el-select v-model="form.courseId" placeholder="请选择课堂名称" clearable filterable style="width: 100%" @change="onCourseChange">
+            <el-option v-for="item in educationOptions.classroomCourseOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="章节类型" prop="parentChapterType">
@@ -85,10 +85,10 @@
             />
           </el-select>
           <span v-if="form.parentChapterType === 'chapter' && form.courseId && getParentChapterOptions(form.courseId, form.chapterId, 'chapter').length === 0" style="color: #E6A23C; font-size: 12px; margin-top: 4px;">
-            提示：该课程下暂无顶级章节，请先新建顶级章节
+            提示：该课堂下暂无顶级章节，请先新建顶级章节
           </span>
           <span v-if="form.parentChapterType === 'chapter' && !form.courseId" style="color: #909399; font-size: 12px; margin-top: 4px;">
-            请先选择课程名称
+            请先选择课堂名称
           </span>
         </el-form-item>
         <!-- ancestors 由后端自动计算，无需前端维护 -->
@@ -147,7 +147,7 @@ export default {
       form: {},
       rules: {
         courseId: [
-          { required: true, message: '请选择课程名称', trigger: 'change' }
+          { required: true, message: '请选择课堂名称', trigger: 'change' }
         ],
         chapterTitle: [
           { required: true, message: '请输入章节标题', trigger: 'blur' }
@@ -161,10 +161,10 @@ export default {
   },
   methods: {
     getCourseLabel(courseId) {
-      return this.getEducationOptionLabel('courseOptions', courseId)
+      return this.getEducationOptionLabel('classroomCourseOptions', courseId)
     },
     getParentChapterOptions(courseId, excludeId, parentChapterType) {
-      const all = this.educationOptions.chapterOptions || []
+      const all = this.educationOptions.classroomChapterOptions || []
       return all.filter(item => {
         if (excludeId != null && String(item.value) === String(excludeId)) return false
         if (!courseId) return false
@@ -195,7 +195,7 @@ export default {
           if (!courseMap[courseId]) {
             // 优先从 courseOptions 查找，找不到时用 courseId兜底
             let courseName = this.getCourseLabel(courseId)
-            if (!courseName) courseName = '课程(ID:' + courseId + ')'
+            if (!courseName) courseName = '课堂(ID:' + courseId + ')'
             courseMap[courseId] = {
               chapterId: -courseId,
               chapterTitle: courseName,
@@ -262,7 +262,7 @@ export default {
     handleAdd() {
       this.reset()
       this.open = true
-      this.title = '新增课程章节'
+      this.title = '新增课堂章节'
     },
     handleUpdate(row) {
       this.reset()
@@ -278,7 +278,7 @@ export default {
           this.form.parentChapterType = 'chapter'
         }
         this.open = true
-        this.title = '修改课程章节'
+        this.title = '修改课堂章节'
       })
     },
     submitForm() {
@@ -309,7 +309,7 @@ export default {
       })
     },
     handleDelete(row) {
-      this.$modal.confirm('是否确认删除课程章节编号为"' + row.chapterId + '"的数据项？').then(() => {
+      this.$modal.confirm('是否确认删除课堂章节编号为"' + row.chapterId + '"的数据项？').then(() => {
         return delChapter(row.chapterId)
       }).then(() => {
         this.getList()

@@ -81,6 +81,10 @@ public class EduCourseController extends BaseController
         {
             return error("新增课程失败，该学期下课程号【" + course.getCourseCode() + "】课序号【" + course.getClassNo() + "】已存在");
         }
+        if (!courseService.checkTermCourseCodeUnique(course))
+        {
+            return error("新增课程失败，该学期下课程号【" + course.getCourseCode() + "】已存在");
+        }
         course.setCreateBy(getUsername());
         Long ownerTeacherUserId = educationPermission.isTeacher() ? educationPermission.getCurrentUserId() : null;
         Long courseId = courseService.insertEduCourse(course, ownerTeacherUserId);

@@ -34,6 +34,16 @@ public interface EduCourseMapper
                          @Param("excludeCourseId") Long excludeCourseId);
 
     /**
+     * 唯一性校验：同一学期下 courseCode 是否已存在（不限课序号）
+     * @param termId         学期ID
+     * @param courseCode     课程号
+     * @param excludeCourseId 编辑时排除自身（新增传null）
+     */
+    int countByTermAndCourseCode(@Param("termId") Long termId,
+                                 @Param("courseCode") String courseCode,
+                                 @Param("excludeCourseId") Long excludeCourseId);
+
+    /**
      * 模糊搜索课程列表（返回courseId和courseName）
      * @param courseName 课程名称关键字
      * @param deptId 限定院系（传null则不过滤）

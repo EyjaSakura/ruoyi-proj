@@ -36,6 +36,13 @@ public interface IEduCourseService
     boolean checkClassNoUnique(EduCourse course);
 
     /**
+     * 校验 (term_id, course_code) 唯一性（不限课序号）
+     * @param course          当前课程对象（courseId为null时表示新增）
+     * @return true=通过，false=已存在
+     */
+    boolean checkTermCourseCodeUnique(EduCourse course);
+
+    /**
      * 模糊搜索课程（用于下拉框实时搜索）
      * @param courseName 课程名称关键字
      * @param deptId 限定院系（传null则按权限过滤）

@@ -3,11 +3,13 @@ package com.ruoyi.system.service.impl.education;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.system.domain.education.EduCourse;
 import com.ruoyi.system.mapper.education.EduCourseMapper;
@@ -100,12 +102,19 @@ public class EduCourseLibServiceImpl implements com.ruoyi.system.service.educati
         }
         // 设置创建信息
         eduCourse.setCreateBy(SecurityUtils.getUsername());
-        return courseMapper.insertEduCourse(eduCourse);
+        try
+        {
+            return courseMapper.insertEduCourse(eduCourse);
+        }
+        catch (DataIntegrityViolationException e)
+        {
+            throw new ServiceException("新增课程失败，课程库中课程号【" + eduCourse.getCourseCode() + "】已存在");
+        }
     }
 
     /**
      * 修改课程库
-     * 
+     *
      * @param eduCourse 课程
      * @return 结果
      */
@@ -113,7 +122,14 @@ public class EduCourseLibServiceImpl implements com.ruoyi.system.service.educati
     public int updateCourseLib(EduCourse eduCourse)
     {
         eduCourse.setUpdateBy(SecurityUtils.getUsername());
-        return courseMapper.updateEduCourse(eduCourse);
+        try
+        {
+            return courseMapper.updateEduCourse(eduCourse);
+        }
+        catch (DataIntegrityViolationException e)
+        {
+            throw new ServiceException("修改课程失败，课程库中课程号【" + eduCourse.getCourseCode() + "】已存在");
+        }
     }
 
     /**
