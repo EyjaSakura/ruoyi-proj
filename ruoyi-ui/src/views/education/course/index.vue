@@ -51,7 +51,11 @@
       </el-table-column>
       <el-table-column label="学分" align="center" prop="credit" :show-overflow-tooltip="true" />
       <el-table-column label="总课时" align="center" prop="totalHours" :show-overflow-tooltip="true" />
-      <el-table-column label="当前已选人数" align="center" prop="selectedCount" :show-overflow-tooltip="true" />
+      <el-table-column v-if="isCollegeAdmin" label="授课教师" align="center" :show-overflow-tooltip="true">
+        <template slot-scope="scope">
+          <span>{{ getEducationOptionLabel('teacherUserOptions', scope.row.teacherUserId) }}</span>
+        </template>
+      </el-table-column>
       <el-table-column v-if="canManageCourse" label="操作" align="center" class-name="small-padding fixed-width" width="180">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改</el-button>

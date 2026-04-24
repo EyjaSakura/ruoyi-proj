@@ -28,6 +28,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateBy" column="update_by" />
         <result property="updateTime" column="update_time" />
         <result property="remark" column="remark" />
+        <result property="teacherUserId" column="teacher_user_id" />
+        <result property="teacherUserName" column="teacher_user_name" />
+        <result property="teacherLoginName" column="teacher_login_name" />
     </resultMap>
 
     <sql id="selectEduCourseVo">
@@ -54,8 +57,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             t.create_time,
             t.update_by,
             t.update_time,
-            t.remark
+            t.remark,
+            owner.teacher_user_id,
+            owner.teacher_user_name,
+            owner.teacher_login_name
         from edu_course t
+        left join (
+            select course_id, teacher_user_id,
+                   user_name as teacher_user_name,
+                   user_name as teacher_login_name,
+                   row_number() over(partition by course_id order by course_teacher_id) as rn
+            from edu_course_teacher ct
+            join sys_user u on u.user_id = ct.teacher_user_id
+            where ct.is_owner = '1'
+        ) owner on owner.course_id = t.course_id and owner.rn = 1
     </sql>
 
     <select id="selectEduCourseList" parameterType="com.ruoyi.system.domain.education.EduCourse" resultMap="EduCourseResult">

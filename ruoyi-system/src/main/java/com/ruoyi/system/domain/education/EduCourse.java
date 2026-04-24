@@ -89,6 +89,15 @@ public class EduCourse extends BaseEntity
     @Excel(name = "删除标志")
     private String delFlag;
 
+    /** 授课教师ID（从 edu_course_teacher JOIN sys_user 查出） */
+    private Long teacherUserId;
+
+    /** 授课教师姓名（从 edu_course_teacher JOIN sys_user 查出） */
+    private String teacherUserName;
+
+    /** 授课教师工号（从 edu_course_teacher JOIN sys_user 查出） */
+    private String teacherLoginName;
+
     public void setCourseId(Long courseId)
     {
         this.courseId = courseId;
@@ -269,6 +278,36 @@ public class EduCourse extends BaseEntity
         return delFlag;
     }
 
+    public Long getTeacherUserId()
+    {
+        return teacherUserId;
+    }
+
+    public void setTeacherUserId(Long teacherUserId)
+    {
+        this.teacherUserId = teacherUserId;
+    }
+
+    public String getTeacherUserName()
+    {
+        return teacherUserName;
+    }
+
+    public void setTeacherUserName(String teacherUserName)
+    {
+        this.teacherUserName = teacherUserName;
+    }
+
+    public String getTeacherLoginName()
+    {
+        return teacherLoginName;
+    }
+
+    public void setTeacherLoginName(String teacherLoginName)
+    {
+        this.teacherLoginName = teacherLoginName;
+    }
+
     @Override
     public String toString()
     {
@@ -291,6 +330,9 @@ public class EduCourse extends BaseEntity
             .append("completeRule", getCompleteRule())
             .append("status", getStatus())
             .append("delFlag", getDelFlag())
+            .append("teacherUserId", getTeacherUserId())
+            .append("teacherUserName", getTeacherUserName())
+            .append("teacherLoginName", getTeacherLoginName())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())
